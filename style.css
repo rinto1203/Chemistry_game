@@ -1,11 +1,9 @@
 @charset "UTF-8";
 
-/* --- 全体の背景設定 --- */
 body {
-    /* 宇宙・サイエンス感のある深いグラデーション */
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     min-height: 100vh;
-    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
     margin: 0;
     padding: 20px;
     color: #fff;
@@ -14,60 +12,59 @@ body {
     align-items: center;
 }
 
-/* ゲームタイトル */
 .game-title {
     font-size: 2.5rem;
     letter-spacing: 5px;
     margin-bottom: 40px;
     text-shadow: 0 0 10px rgba(255,255,255,0.5);
-    opacity: 0.9;
 }
 
-/* カードを並べるエリア */
 .battle-field {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 30px; /* カード間の隙間 */
-    flex-wrap: wrap; /* 画面が狭いときは折り返す */
+    gap: 30px;
+    flex-wrap: wrap;
 }
 
-/* VSの文字 */
 .vs-sign {
     font-size: 3rem;
     font-weight: bold;
     font-style: italic;
     text-shadow: 0 0 15px #ff0055;
+    animation: pulse 2s infinite; /* VSマークが鼓動する */
+}
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
-/* --- カード本体（グラスモーフィズム） --- */
+/* カード本体 */
 .chem-card {
     width: 300px;
     height: 480px;
     padding: 20px;
     border-radius: 20px;
     position: relative;
-    
-    /* ▼ 透明感の魔法 ▼ */
-    background: rgba(255, 255, 255, 0.1); /* 10%の白 */
-    backdrop-filter: blur(10px);          /* すりガラス効果 */
-    border: 1px solid rgba(255, 255, 255, 0.2); /* 薄い枠線 */
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* 影 */
-    
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
+    cursor: pointer; /* クリックできる感 */
+    user-select: none; /* 文字選択されないようにする */
 }
 
-/* ホバー時の浮き上がり */
 .chem-card:hover {
     transform: translateY(-15px) scale(1.02);
     box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.5);
-    z-index: 10; /* 他の要素より手前に */
+    z-index: 10;
 }
 
-/* --- カード内部のパーツ --- */
-
+/* カード内部 */
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -75,18 +72,14 @@ body {
     margin-bottom: 12px;
 }
 
-/* ★ここに最初の質問の「文字グラデーション」を採用★ */
 .card-name {
     margin: 0;
     font-size: 1.6rem;
     font-weight: 800;
-    
-    /* 文字の背景グラデーション */
     background: linear-gradient(to right, #fff, #bbb);
     -webkit-background-clip: text;
     background-clip: text;
-    -webkit-text-fill-color: transparent; /* 文字色を透明に */
-    
+    -webkit-text-fill-color: transparent;
     text-shadow: 0 2px 10px rgba(255,255,255,0.2);
 }
 
@@ -98,7 +91,6 @@ body {
     font-size: 1.4rem;
 }
 
-/* 画像エリア */
 .card-image {
     width: 100%;
     height: 160px;
@@ -108,16 +100,11 @@ body {
     border: 1px solid rgba(255,255,255,0.1);
     background: rgba(0,0,0,0.3);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
-.card-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+.card-image img { width: 100%; height: 100%; object-fit: cover; }
 
-/* タイプ表示 */
 .type-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -129,10 +116,7 @@ body {
     align-self: flex-start;
 }
 
-/* 技リスト */
-.skills-section {
-    flex-grow: 1; /* 余白を埋める */
-}
+.skills-section { flex-grow: 1; }
 
 .skill {
     display: flex;
@@ -140,9 +124,7 @@ body {
     padding: 8px 0;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.skill:last-child {
-    border-bottom: none;
-}
+.skill:last-child { border-bottom: none; }
 
 .skill-cost {
     font-size: 0.7rem;
@@ -151,26 +133,15 @@ body {
     letter-spacing: -2px;
 }
 
-.skill-detail h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-}
-.skill-desc {
-    margin: 2px 0 0;
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.7);
-    line-height: 1.2;
-}
-
+.skill-detail h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+.skill-desc { margin: 2px 0 0; font-size: 0.7rem; color: rgba(255,255,255,0.7); }
 .skill-damage {
     font-size: 1.3rem;
     font-weight: bold;
-    margin-left: auto; /* 右端に寄せる */
+    margin-left: auto;
     font-family: 'Courier New', Courier, monospace;
 }
 
-/* フレーバーテキスト */
 .flavor-text {
     margin-top: 10px;
     padding-top: 8px;
@@ -178,13 +149,27 @@ body {
     font-size: 0.7rem;
     color: rgba(255,255,255,0.6);
     font-style: italic;
-    line-height: 1.4;
 }
 
-/* タイプの違いによる微調整（オプショナル） */
-.acid-type {
-    box-shadow: 0 8px 32px 0 rgba(255, 50, 50, 0.15); /* 赤っぽい光 */
+/* ▼▼▼ 追加：ダメージ演出のアニメーション ▼▼▼ */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px) rotate(-5deg); }
+  50% { transform: translateX(5px) rotate(5deg); }
+  75% { transform: translateX(-5px) rotate(-5deg); }
+  100% { transform: translateX(0); }
 }
-.organic-type {
-    box-shadow: 0 8px 32px 0 rgba(50, 255, 50, 0.15); /* 緑っぽい光 */
+
+.shake {
+    animation: shake 0.4s ease-in-out;
+    border: 2px solid #ff3333 !important; /* 赤枠でダメージ感を出す */
+    background: rgba(255, 0, 0, 0.2) !important; /* 背景も少し赤く */
+}
+
+/* 倒された状態 */
+.defeated {
+    opacity: 0.5;
+    filter: grayscale(100%); /* モノクロにする */
+    pointer-events: none; /* クリックできなくする */
+    transform: scale(0.95);
 }
