@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -21,221 +22,426 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: radial-gradient(circle at 50% 50%, #2c3e50 0%, #000000 100%);
             color: white;
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
-            height: 100vh; width: 100vw;
-            display: flex; flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
             touch-action: manipulation;
         }
 
         /* --- 画面管理 --- */
         .screen {
-            display: none; width: 100%; height: 100%;
-            flex-direction: column; align-items: center; justify-content: center;
-            position: absolute; top: 0; left: 0;
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
             transition: opacity 0.4s ease;
         }
-        .active { display: flex; z-index: 10; }
+
+        .active {
+            display: flex;
+            z-index: 10;
+        }
 
         /* --- メニュー画面 --- */
-        #screen-menu { background: rgba(0,0,0,0.8); z-index: 20; }
+        #screen-menu {
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 20;
+        }
+
         h1 {
-            font-size: 3rem; margin-bottom: 40px;
-            text-transform: uppercase; letter-spacing: 5px;
+            font-size: 3rem;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 5px;
             background: linear-gradient(to right, #fff, #bbb);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
         }
+
         .menu-btn {
-            width: 280px; padding: 20px; margin: 10px;
-            font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;
-            color: #fff; background: transparent;
-            border: 2px solid rgba(255,255,255,0.3);
+            width: 280px;
+            padding: 20px;
+            margin: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #fff;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 4px;
-            cursor: pointer; transition: 0.3s;
-            position: relative; overflow: hidden;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
         }
+
         .menu-btn::before {
-            content: ''; position: absolute; top: 0; left: -100%;
-            width: 100%; height: 100%; background: rgba(255,255,255,0.1);
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
             transition: 0.3s;
         }
-        .menu-btn:hover::before { left: 0; }
-        .menu-btn:hover { border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+
+        .menu-btn:hover::before {
+            left: 0;
+        }
+
+        .menu-btn:hover {
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
 
         /* --- ゲーム画面ヘッダー (New!) --- */
         .game-header {
-            width: 100%; padding: 10px 20px;
-            display: flex; justify-content: space-between; align-items: center;
+            width: 100%;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-sizing: border-box;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-            position: absolute; top: 0; z-index: 50;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            position: absolute;
+            top: 0;
+            z-index: 50;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .home-btn {
-            background: none; border: 1px solid rgba(255,255,255,0.3);
-            color: #fff; padding: 8px 15px; border-radius: 20px;
-            cursor: pointer; font-size: 0.9rem; transition: 0.3s;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.3s;
         }
-        .home-btn:hover { background: rgba(255,255,255,0.2); }
+
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
         /* --- バトルコンテナ --- */
         .battle-container {
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            padding-top: 60px; /* ヘッダー分 */
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-top: 60px;
+            /* ヘッダー分 */
             box-sizing: border-box;
         }
 
         /* ステータスバー */
         .status-area {
-            display: flex; justify-content: space-between; align-items: flex-end;
-            padding: 0 20px; margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 20px;
+            margin-bottom: 10px;
         }
-        .hp-label { font-size: 0.8rem; color: #aaa; margin-bottom: 3px; }
+
+        .hp-label {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 3px;
+        }
+
         .hp-bar-frame {
-            width: 120px; height: 10px; background: #333;
-            border-radius: 5px; overflow: hidden;
+            width: 120px;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
         }
+
         .hp-fill {
-            height: 100%; background: #2ecc71; width: 100%; transition: width 0.5s;
+            height: 100%;
+            background: #2ecc71;
+            width: 100%;
+            transition: width 0.5s;
         }
+
         .turn-badge {
-            font-size: 1.5rem; font-weight: 900; color: #fff;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #fff;
             text-shadow: 0 0 10px var(--gold);
         }
 
         /* アリーナ (中央) */
         .arena {
-            flex-grow: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             perspective: 800px;
         }
+
         .reaction-circle {
-            width: 180px; height: 180px; border-radius: 50%;
-            border: 2px dashed rgba(255,255,255,0.2);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; color: rgba(255,255,255,0.3);
-            transition: 0.3s; background: rgba(0,0,0,0.2);
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.3);
+            transition: 0.3s;
+            background: rgba(0, 0, 0, 0.2);
         }
+
         .reaction-circle.active {
-            border-color: var(--gold); border-style: solid;
+            border-color: var(--gold);
+            border-style: solid;
             box-shadow: 0 0 30px rgba(241, 196, 15, 0.3);
             color: #fff;
         }
+
         #attack-btn {
-            margin-top: 20px; padding: 12px 40px;
-            font-size: 1.1rem; letter-spacing: 2px; font-weight: bold;
+            margin-top: 20px;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            font-weight: bold;
             background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white; border: none; border-radius: 30px;
-            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
             transition: 0.2s;
         }
-        #attack-btn:disabled { background: #555; box-shadow: none; opacity: 0.5; }
-        #attack-btn:not(:disabled):active { transform: scale(0.95); }
+
+        #attack-btn:disabled {
+            background: #555;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+
+        #attack-btn:not(:disabled):active {
+            transform: scale(0.95);
+        }
 
         /* 手札エリア */
         .hand-area {
-            height: 160px; background: rgba(0,0,0,0.5);
-            display: flex; align-items: center; justify-content: center;
-            overflow-x: auto; /* 横スクロール対応 */
+            height: 160px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: auto;
+            /* 横スクロール対応 */
             backdrop-filter: blur(5px);
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .card-row {
-            display: flex; padding: 0 20px; gap: 15px;
+            display: flex;
+            padding: 0 20px;
+            gap: 15px;
         }
 
         /* --- リアルカードデザイン --- */
         .card {
-            width: var(--card-width); height: var(--card-height);
+            width: var(--card-width);
+            height: var(--card-height);
             border-radius: 8px;
-            position: relative; cursor: pointer;
+            position: relative;
+            cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             user-select: none;
             /* 3Dシャドウ */
-            box-shadow: 2px 4px 10px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.2);
+            box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
             background: #ecf0f1;
         }
-        .card:hover { transform: translateY(-10px); z-index: 10; }
+
+        .card:hover {
+            transform: translateY(-10px);
+            z-index: 10;
+        }
+
         .card.selected {
             transform: translateY(-20px) scale(1.1);
-            box-shadow: 0 0 20px var(--gold), 0 10px 20px rgba(0,0,0,0.6);
+            box-shadow: 0 0 20px var(--gold), 0 10px 20px rgba(0, 0, 0, 0.6);
             z-index: 15;
             border: 2px solid var(--gold);
         }
 
         /* カードの内部構造 */
         .card-inner {
-            position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px;
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
             border-radius: 5px;
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
+
         /* 陽イオンのデザイン */
         .cation .card-inner {
             background: linear-gradient(135deg, #fff 0%, #ffeaa7 100%);
         }
-        .cation .card-top { background: var(--cation-base); }
-        .cation .card-symbol { color: var(--cation-base); }
-        
+
+        .cation .card-top {
+            background: var(--cation-base);
+        }
+
+        .cation .card-symbol {
+            color: var(--cation-base);
+        }
+
         /* 陰イオンのデザイン */
         .anion .card-inner {
             background: linear-gradient(135deg, #fff 0%, #74b9ff 100%);
         }
-        .anion .card-top { background: var(--anion-base); }
-        .anion .card-symbol { color: var(--anion-base); }
+
+        .anion .card-top {
+            background: var(--anion-base);
+        }
+
+        .anion .card-symbol {
+            color: var(--anion-base);
+        }
 
         .card-top {
-            height: 20px; color: white; font-size: 0.6rem;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; letter-spacing: 1px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            height: 20px;
+            color: white;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
+
         .card-main {
-            flex-grow: 1; display: flex; align-items: center; justify-content: center;
-            background: rgba(255,255,255,0.5);
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.5);
             position: relative;
         }
+
         .card-symbol {
-            font-size: 1.4rem; font-weight: bold; font-family: 'Times New Roman', serif;
+            font-size: 1.4rem;
+            font-weight: bold;
+            font-family: 'Times New Roman', serif;
         }
+
         .card-bottom {
-            font-size: 0.55rem; color: #555; text-align: center;
-            padding: 2px; background: rgba(255,255,255,0.8);
+            font-size: 0.55rem;
+            color: #555;
+            text-align: center;
+            padding: 2px;
+            background: rgba(255, 255, 255, 0.8);
         }
-        
+
         /* 光沢エフェクト (Gloss) */
         .card::after {
-            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 40%);
-            border-radius: 8px; pointer-events: none;
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 40%);
+            border-radius: 8px;
+            pointer-events: none;
         }
 
         /* --- モーダル (結果表示) --- */
         .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; z-index: 90;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 90;
             backdrop-filter: blur(4px);
         }
+
         .modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-            background: #fff; color: #333; padding: 25px; border-radius: 12px;
-            width: 80%; max-width: 350px; text-align: center;
-            display: none; z-index: 100; opacity: 0; transition: 0.3s;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: #fff;
+            color: #333;
+            padding: 25px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 350px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            opacity: 0;
+            transition: 0.3s;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
         }
-        .modal.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        .modal h2 { margin: 0 0 10px 0; color: #e74c3c; }
-        .modal p { font-size: 0.95rem; line-height: 1.5; color: #555; }
+
+        .modal.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .modal h2 {
+            margin: 0 0 10px 0;
+            color: #e74c3c;
+        }
+
+        .modal p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #555;
+        }
 
         /* ダメージ演出 */
-        @keyframes shake { 0% { transform: translateX(2px); } 50% { transform: translateX(-2px); } 100% { transform: translateX(0); } }
-        .shake { animation: shake 0.3s 2; }
+        @keyframes shake {
+            0% {
+                transform: translateX(2px);
+            }
 
+            50% {
+                transform: translateX(-2px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .shake {
+            animation: shake 0.3s 2;
+        }
     </style>
 </head>
+
 <body>
 
     <div id="screen-menu" class="screen active">
@@ -245,7 +451,7 @@
     </div>
 
     <div id="screen-game" class="screen">
-        
+
         <div class="game-header">
             <button class="home-btn" onclick="confirmExit()">🏠 MENU</button>
             <div style="font-size:0.8rem; opacity:0.7;">INORGANIC ARENA</div>
@@ -255,12 +461,16 @@
             <div class="status-area">
                 <div>
                     <div class="hp-label" id="p1-name">PLAYER 1</div>
-                    <div class="hp-bar-frame"><div id="p1-hp" class="hp-fill"></div></div>
+                    <div class="hp-bar-frame">
+                        <div id="p1-hp" class="hp-fill"></div>
+                    </div>
                 </div>
                 <div class="turn-badge" id="turn-indicator">VS</div>
                 <div style="text-align: right;">
                     <div class="hp-label" id="p2-name">PLAYER 2</div>
-                    <div class="hp-bar-frame"><div id="p2-hp" class="hp-fill"></div></div>
+                    <div class="hp-bar-frame">
+                        <div id="p2-hp" class="hp-fill"></div>
+                    </div>
                 </div>
             </div>
 
@@ -273,7 +483,7 @@
 
             <div class="hand-area">
                 <div class="card-row" id="hand-container">
-                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -282,220 +492,222 @@
     <div class="modal" id="result-modal">
         <h2 id="modal-title">TITLE</h2>
         <div id="modal-content"></div>
-        <button class="menu-btn" style="color:#333; border-color:#ccc; margin-top:15px; width:100%;" id="modal-ok" onclick="closeModal()">OK</button>
+        <button class="menu-btn" style="color:#333; border-color:#ccc; margin-top:15px; width:100%;" id="modal-ok"
+            onclick="closeModal()">OK</button>
     </div>
 
-<script>
-    // --- データ ---
-    const cards = [
-        { id: "Ag+", type: "cation", sym: "Ag<sup>+</sup>", name: "銀イオン", detail: "重金属" },
-        { id: "Cu2+", type: "cation", sym: "Cu<sup>2+</sup>", name: "銅(II)", detail: "遷移金属" },
-        { id: "Fe3+", type: "cation", sym: "Fe<sup>3+</sup>", name: "鉄(III)", detail: "遷移金属" },
-        { id: "Ba2+", type: "cation", sym: "Ba<sup>2+</sup>", name: "バリウム", detail: "アルカリ土類" },
-        { id: "Pb2+", type: "cation", sym: "Pb<sup>2+</sup>", name: "鉛(II)", detail: "両性金属" },
-        { id: "Cl-", type: "anion", sym: "Cl<sup>-</sup>", name: "塩化物", detail: "ハロゲン" },
-        { id: "S2-", type: "anion", sym: "S<sup>2-</sup>", name: "硫化物", detail: "弱酸遊離" },
-        { id: "OH-", type: "anion", sym: "OH<sup>-</sup>", name: "水酸化物", detail: "塩基性" },
-        { id: "SO4 2-", type: "anion", sym: "SO<sub>4</sub><sup>2-</sup>", name: "硫酸", detail: "強酸塩" }
-    ];
+    <script>
+        // --- データ ---
+        const cards = [
+            { id: "Ag+", type: "cation", sym: "Ag<sup>+</sup>", name: "銀イオン", detail: "重金属" },
+            { id: "Cu2+", type: "cation", sym: "Cu<sup>2+</sup>", name: "銅(II)", detail: "遷移金属" },
+            { id: "Fe3+", type: "cation", sym: "Fe<sup>3+</sup>", name: "鉄(III)", detail: "遷移金属" },
+            { id: "Ba2+", type: "cation", sym: "Ba<sup>2+</sup>", name: "バリウム", detail: "アルカリ土類" },
+            { id: "Pb2+", type: "cation", sym: "Pb<sup>2+</sup>", name: "鉛(II)", detail: "両性金属" },
+            { id: "Cl-", type: "anion", sym: "Cl<sup>-</sup>", name: "塩化物", detail: "ハロゲン" },
+            { id: "S2-", type: "anion", sym: "S<sup>2-</sup>", name: "硫化物", detail: "弱酸遊離" },
+            { id: "OH-", type: "anion", sym: "OH<sup>-</sup>", name: "水酸化物", detail: "塩基性" },
+            { id: "SO4 2-", type: "anion", sym: "SO<sub>4</sub><sup>2-</sup>", name: "硫酸", detail: "強酸塩" }
+        ];
 
-    const reactions = {
-        "Ag+,Cl-": { power: 25, name: "塩化銀 (白)", desc: "光で分解し黒っぽくなる。" },
-        "Ag+,S2-": { power: 35, name: "硫化銀 (黒)", desc: "非常に溶けにくい黒色沈殿。" },
-        "Cu2+,S2-": { power: 35, name: "硫化銅 (黒)", desc: "酸性でも沈殿する。" },
-        "Cu2+,OH-": { power: 30, name: "水酸化銅 (青白)", desc: "加熱で黒色の酸化銅になる。" },
-        "Fe3+,OH-": { power: 30, name: "水酸化鉄 (赤褐)", desc: "赤サビの主成分。" },
-        "Ba2+,SO4 2-": { power: 45, name: "硫酸バリウム (白)", desc: "X線造影剤に使われる。" },
-        "Pb2+,Cl-": { power: 25, name: "塩化鉛 (白)", desc: "熱湯には溶ける。" },
-        "Pb2+,S2-": { power: 35, name: "硫化鉛 (黒)", desc: "黒色沈殿を作る。" },
-        "Pb2+,SO4 2-": { power: 40, name: "硫酸鉛 (白)", desc: "鉛蓄電池の電極。" }
-    };
+        const reactions = {
+            "Ag+,Cl-": { power: 25, name: "塩化銀 (白)", desc: "光で分解し黒っぽくなる。" },
+            "Ag+,S2-": { power: 35, name: "硫化銀 (黒)", desc: "非常に溶けにくい黒色沈殿。" },
+            "Cu2+,S2-": { power: 35, name: "硫化銅 (黒)", desc: "酸性でも沈殿する。" },
+            "Cu2+,OH-": { power: 30, name: "水酸化銅 (青白)", desc: "加熱で黒色の酸化銅になる。" },
+            "Fe3+,OH-": { power: 30, name: "水酸化鉄 (赤褐)", desc: "赤サビの主成分。" },
+            "Ba2+,SO4 2-": { power: 45, name: "硫酸バリウム (白)", desc: "X線造影剤に使われる。" },
+            "Pb2+,Cl-": { power: 25, name: "塩化鉛 (白)", desc: "熱湯には溶ける。" },
+            "Pb2+,S2-": { power: 35, name: "硫化鉛 (黒)", desc: "黒色沈殿を作る。" },
+            "Pb2+,SO4 2-": { power: 40, name: "硫酸鉛 (白)", desc: "鉛蓄電池の電極。" }
+        };
 
-    let gameState = { mode: 'local', turn: 1, hp: {1:100, 2:100}, selected: {cation:null, anion:null}, processing: false };
-    const MAX_HP = 150;
+        let gameState = { mode: 'local', turn: 1, hp: { 1: 100, 2: 100 }, selected: { cation: null, anion: null }, processing: false };
+        const MAX_HP = 150;
 
-    // --- メニュー機能 ---
-    function confirmExit() {
-        if(confirm("対戦を終了してメニューに戻りますか？")) {
-            showScreen('screen-menu');
+        // --- メニュー機能 ---
+        function confirmExit() {
+            if (confirm("対戦を終了してメニューに戻りますか？")) {
+                showScreen('screen-menu');
+            }
         }
-    }
 
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => {
-            s.classList.remove('active');
-            s.style.opacity = 0;
-        });
-        const target = document.getElementById(id);
-        target.classList.add('active');
-        setTimeout(() => target.style.opacity = 1, 10);
-    }
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active');
+                s.style.opacity = 0;
+            });
+            const target = document.getElementById(id);
+            target.classList.add('active');
+            setTimeout(() => target.style.opacity = 1, 10);
+        }
 
-    // --- ゲーム進行 ---
-    function startGame(mode) {
-        gameState = { mode: mode, turn: 1, hp: {1:MAX_HP, 2:MAX_HP}, selected: {cation:null, anion:null}, processing: false };
-        document.getElementById('p2-name').innerText = mode === 'cpu' ? "CPU" : "PLAYER 2";
-        updateUI();
-        renderHand();
-        showScreen('screen-game');
-    }
+        // --- ゲーム進行 ---
+        function startGame(mode) {
+            gameState = { mode: mode, turn: 1, hp: { 1: MAX_HP, 2: MAX_HP }, selected: { cation: null, anion: null }, processing: false };
+            document.getElementById('p2-name').innerText = mode === 'cpu' ? "CPU" : "PLAYER 2";
+            updateUI();
+            renderHand();
+            showScreen('screen-game');
+        }
 
-    function renderHand() {
-        const container = document.getElementById('hand-container');
-        container.innerHTML = '';
-        cards.forEach(c => {
-            const div = document.createElement('div');
-            div.className = `card ${c.type}`;
-            div.dataset.id = c.id;
-            div.onclick = () => selectCard(c.id, c.type, div);
-            div.innerHTML = `
+        function renderHand() {
+            const container = document.getElementById('hand-container');
+            container.innerHTML = '';
+            cards.forEach(c => {
+                const div = document.createElement('div');
+                div.className = `card ${c.type}`;
+                div.dataset.id = c.id;
+                div.onclick = () => selectCard(c.id, c.type, div);
+                div.innerHTML = `
                 <div class="card-inner">
                     <div class="card-top">${c.name}</div>
                     <div class="card-main"><div class="card-symbol">${c.sym}</div></div>
                     <div class="card-bottom">${c.detail}</div>
                 </div>
             `;
-            container.appendChild(div);
-        });
-        updateCenter();
-    }
-
-    function selectCard(id, type, el) {
-        if(gameState.processing) return;
-        if(gameState.mode === 'cpu' && gameState.turn === 2) return;
-
-        // Toggle selection
-        if(gameState.selected[type] === id) {
-            gameState.selected[type] = null;
-            el.classList.remove('selected');
-        } else {
-            document.querySelectorAll(`.card.${type}`).forEach(c => c.classList.remove('selected'));
-            gameState.selected[type] = id;
-            el.classList.add('selected');
-        }
-        updateCenter();
-    }
-
-    function updateCenter() {
-        const zone = document.getElementById('reaction-zone');
-        const btn = document.getElementById('attack-btn');
-        const {cation, anion} = gameState.selected;
-
-        if(cation && anion) {
-            zone.classList.add('active');
-            zone.innerHTML = "READY";
-            btn.disabled = false;
-        } else {
-            zone.classList.remove('active');
-            const cInfo = cation ? cards.find(x=>x.id===cation).sym : "";
-            const aInfo = anion ? cards.find(x=>x.id===anion).sym : "";
-            zone.innerHTML = cInfo && aInfo ? `${cInfo}<br>+<br>${aInfo}` : (cInfo || aInfo || "SELECT");
-            btn.disabled = true;
-        }
-    }
-
-    function executeTurn() {
-        gameState.processing = true;
-        const {cation, anion} = gameState.selected;
-        const key = `${cation},${anion}`;
-        const reaction = reactions[key];
-        const target = gameState.turn === 1 ? 2 : 1;
-        const isCpu = gameState.mode === 'cpu' && gameState.turn === 2;
-
-        if(reaction) {
-            damage(target, reaction.power);
-            showModal(`HIT! -${reaction.power}`, `<strong>${reaction.name}</strong><br>${reaction.desc}`, isCpu);
-        } else {
-            damage(gameState.turn, 15);
-            showModal("MISS...", "反応なし！実験失敗。<br>自分に15ダメージ。", isCpu);
-        }
-    }
-
-    function damage(player, amount) {
-        gameState.hp[player] = Math.max(0, gameState.hp[player] - amount);
-        const bar = document.getElementById(player === 1 ? 'p1-hp' : 'p2-hp');
-        bar.parentElement.classList.add('shake');
-        setTimeout(()=>bar.parentElement.classList.remove('shake'), 500);
-        updateUI();
-    }
-
-    function updateUI() {
-        document.getElementById('p1-hp').style.width = (gameState.hp[1]/MAX_HP*100) + "%";
-        document.getElementById('p2-hp').style.width = (gameState.hp[2]/MAX_HP*100) + "%";
-        document.getElementById('turn-indicator').innerText = 
-            gameState.mode === 'cpu' && gameState.turn === 2 ? "CPU" : `P${gameState.turn}`;
-        
-        // Color update
-        document.getElementById('turn-indicator').style.color = gameState.turn === 1 ? '#3498db' : '#e74c3c';
-    }
-
-    // Modal
-    function showModal(title, content, autoClose) {
-        const modal = document.getElementById('result-modal');
-        document.getElementById('modal-title').innerHTML = title;
-        document.getElementById('modal-content').innerHTML = content;
-        document.getElementById('overlay').style.display = 'block';
-        modal.style.display = 'block';
-        setTimeout(()=>modal.classList.add('show'), 10);
-
-        document.getElementById('modal-ok').style.display = autoClose ? 'none' : 'block';
-        
-        if(autoClose) {
-            setTimeout(closeModal, 2000);
-        }
-    }
-
-    function closeModal() {
-        const modal = document.getElementById('result-modal');
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-            document.getElementById('overlay').style.display = 'none';
-            checkWin();
-        }, 300);
-    }
-
-    function checkWin() {
-        if(gameState.hp[1] <= 0 || gameState.hp[2] <= 0) {
-            alert(gameState.hp[1] > 0 ? "PLAYER 1 WIN!" : (gameState.mode === 'cpu' ? "CPU WIN!" : "PLAYER 2 WIN!"));
-            showScreen('screen-menu');
-        } else {
-            gameState.turn = gameState.turn === 1 ? 2 : 1;
-            gameState.selected = {cation:null, anion:null};
-            gameState.processing = false;
-            renderHand();
-            updateUI();
-            if(gameState.mode === 'cpu' && gameState.turn === 2) setTimeout(cpuPlay, 1000);
-        }
-    }
-
-    function cpuPlay() {
-        // Simple AI: 40% hit rate
-        const willHit = Math.random() < 0.4;
-        let c, a;
-        if(willHit) {
-            const keys = Object.keys(reactions);
-            const pair = keys[Math.floor(Math.random()*keys.length)].split(',');
-            c = pair[0]; a = pair[1];
-        } else {
-            const cList = cards.filter(x=>x.type==='cation');
-            const aList = cards.filter(x=>x.type==='anion');
-            c = cList[Math.floor(Math.random()*cList.length)].id;
-            a = aList[Math.floor(Math.random()*aList.length)].id;
-        }
-        
-        // Visual selection
-        const cEl = document.querySelector(`.card[data-id="${c}"]`);
-        const aEl = document.querySelector(`.card[data-id="${a}"]`);
-        if(cEl) cEl.classList.add('selected');
-        
-        setTimeout(() => {
-            if(aEl) aEl.classList.add('selected');
-            gameState.selected = {cation: c, anion: a};
+                container.appendChild(div);
+            });
             updateCenter();
-            setTimeout(executeTurn, 1000);
-        }, 800);
-    }
-</script>
+        }
+
+        function selectCard(id, type, el) {
+            if (gameState.processing) return;
+            if (gameState.mode === 'cpu' && gameState.turn === 2) return;
+
+            // Toggle selection
+            if (gameState.selected[type] === id) {
+                gameState.selected[type] = null;
+                el.classList.remove('selected');
+            } else {
+                document.querySelectorAll(`.card.${type}`).forEach(c => c.classList.remove('selected'));
+                gameState.selected[type] = id;
+                el.classList.add('selected');
+            }
+            updateCenter();
+        }
+
+        function updateCenter() {
+            const zone = document.getElementById('reaction-zone');
+            const btn = document.getElementById('attack-btn');
+            const { cation, anion } = gameState.selected;
+
+            if (cation && anion) {
+                zone.classList.add('active');
+                zone.innerHTML = "READY";
+                btn.disabled = false;
+            } else {
+                zone.classList.remove('active');
+                const cInfo = cation ? cards.find(x => x.id === cation).sym : "";
+                const aInfo = anion ? cards.find(x => x.id === anion).sym : "";
+                zone.innerHTML = cInfo && aInfo ? `${cInfo}<br>+<br>${aInfo}` : (cInfo || aInfo || "SELECT");
+                btn.disabled = true;
+            }
+        }
+
+        function executeTurn() {
+            gameState.processing = true;
+            const { cation, anion } = gameState.selected;
+            const key = `${cation},${anion}`;
+            const reaction = reactions[key];
+            const target = gameState.turn === 1 ? 2 : 1;
+            const isCpu = gameState.mode === 'cpu' && gameState.turn === 2;
+
+            if (reaction) {
+                damage(target, reaction.power);
+                showModal(`HIT! -${reaction.power}`, `<strong>${reaction.name}</strong><br>${reaction.desc}`, isCpu);
+            } else {
+                damage(gameState.turn, 15);
+                showModal("MISS...", "反応なし！実験失敗。<br>自分に15ダメージ。", isCpu);
+            }
+        }
+
+        function damage(player, amount) {
+            gameState.hp[player] = Math.max(0, gameState.hp[player] - amount);
+            const bar = document.getElementById(player === 1 ? 'p1-hp' : 'p2-hp');
+            bar.parentElement.classList.add('shake');
+            setTimeout(() => bar.parentElement.classList.remove('shake'), 500);
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('p1-hp').style.width = (gameState.hp[1] / MAX_HP * 100) + "%";
+            document.getElementById('p2-hp').style.width = (gameState.hp[2] / MAX_HP * 100) + "%";
+            document.getElementById('turn-indicator').innerText =
+                gameState.mode === 'cpu' && gameState.turn === 2 ? "CPU" : `P${gameState.turn}`;
+
+            // Color update
+            document.getElementById('turn-indicator').style.color = gameState.turn === 1 ? '#3498db' : '#e74c3c';
+        }
+
+        // Modal
+        function showModal(title, content, autoClose) {
+            const modal = document.getElementById('result-modal');
+            document.getElementById('modal-title').innerHTML = title;
+            document.getElementById('modal-content').innerHTML = content;
+            document.getElementById('overlay').style.display = 'block';
+            modal.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+
+            document.getElementById('modal-ok').style.display = autoClose ? 'none' : 'block';
+
+            if (autoClose) {
+                setTimeout(closeModal, 2000);
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('result-modal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.getElementById('overlay').style.display = 'none';
+                checkWin();
+            }, 300);
+        }
+
+        function checkWin() {
+            if (gameState.hp[1] <= 0 || gameState.hp[2] <= 0) {
+                alert(gameState.hp[1] > 0 ? "PLAYER 1 WIN!" : (gameState.mode === 'cpu' ? "CPU WIN!" : "PLAYER 2 WIN!"));
+                showScreen('screen-menu');
+            } else {
+                gameState.turn = gameState.turn === 1 ? 2 : 1;
+                gameState.selected = { cation: null, anion: null };
+                gameState.processing = false;
+                renderHand();
+                updateUI();
+                if (gameState.mode === 'cpu' && gameState.turn === 2) setTimeout(cpuPlay, 1000);
+            }
+        }
+
+        function cpuPlay() {
+            // Simple AI: 40% hit rate
+            const willHit = Math.random() < 0.4;
+            let c, a;
+            if (willHit) {
+                const keys = Object.keys(reactions);
+                const pair = keys[Math.floor(Math.random() * keys.length)].split(',');
+                c = pair[0]; a = pair[1];
+            } else {
+                const cList = cards.filter(x => x.type === 'cation');
+                const aList = cards.filter(x => x.type === 'anion');
+                c = cList[Math.floor(Math.random() * cList.length)].id;
+                a = aList[Math.floor(Math.random() * aList.length)].id;
+            }
+
+            // Visual selection
+            const cEl = document.querySelector(`.card[data-id="${c}"]`);
+            const aEl = document.querySelector(`.card[data-id="${a}"]`);
+            if (cEl) cEl.classList.add('selected');
+
+            setTimeout(() => {
+                if (aEl) aEl.classList.add('selected');
+                gameState.selected = { cation: c, anion: a };
+                updateCenter();
+                setTimeout(executeTurn, 1000);
+            }, 800);
+        }
+    </script>
 </body>
+
 </html>
