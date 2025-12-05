@@ -2,147 +2,273 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inorganic Battle Arena</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inorganic Battle Arena V5</title>
     <style>
+        :root {
+            --bg-dark: #121212;
+            --cation-base: #e74c3c;
+            --cation-light: #ff7675;
+            --anion-base: #3498db;
+            --anion-light: #74b9ff;
+            --gold: #f1c40f;
+            --card-width: 80px;
+            --card-height: 115px;
+        }
+
         /* --- 全体設定 --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a1a2e; /* 濃紺 */
+            background: radial-gradient(circle at 50% 50%, #2c3e50 0%, #000000 100%);
             color: white;
             margin: 0; padding: 0;
-            overflow: hidden; /* スクロールさせない */
-            height: 100vh;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden;
+            height: 100vh; width: 100vw;
+            display: flex; flex-direction: column;
+            touch-action: manipulation;
         }
 
-        /* --- 画面切り替え用 --- */
+        /* --- 画面管理 --- */
         .screen {
-            display: none; /* 基本は隠す */
-            width: 100%; height: 100%;
+            display: none; width: 100%; height: 100%;
             flex-direction: column; align-items: center; justify-content: center;
             position: absolute; top: 0; left: 0;
+            transition: opacity 0.4s ease;
         }
-        .active { display: flex; } /* activeクラスがついた画面だけ表示 */
+        .active { display: flex; z-index: 10; }
 
-        /* --- タイトル画面 (Menu) --- */
-        h1 { font-size: 3rem; text-shadow: 0 0 20px #e94560; margin-bottom: 40px; }
+        /* --- メニュー画面 --- */
+        #screen-menu { background: rgba(0,0,0,0.8); z-index: 20; }
+        h1 {
+            font-size: 3rem; margin-bottom: 40px;
+            text-transform: uppercase; letter-spacing: 5px;
+            background: linear-gradient(to right, #fff, #bbb);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
         .menu-btn {
             width: 280px; padding: 20px; margin: 10px;
-            font-size: 1.2rem; font-weight: bold;
-            color: #fff; background: rgba(255, 255, 255, 0.1);
-            border: 2px solid #0f3460; border-radius: 10px;
+            font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;
+            color: #fff; background: transparent;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
             cursor: pointer; transition: 0.3s;
+            position: relative; overflow: hidden;
         }
-        .menu-btn:hover { background: #e94560; border-color: #e94560; transform: scale(1.05); }
-        .disabled { opacity: 0.5; cursor: not-allowed; } /* 準備中ボタン用 */
-
-        /* --- バトル画面 (Game) --- */
-        .battle-container {
-            width: 90%; max-width: 800px; height: 90%;
-            display: flex; flex-direction: column; justify-content: space-between;
+        .menu-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%; background: rgba(255,255,255,0.1);
+            transition: 0.3s;
         }
+        .menu-btn:hover::before { left: 0; }
+        .menu-btn:hover { border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
-        /* HPバーエリア */
-        .status-bar {
+        /* --- ゲーム画面ヘッダー (New!) --- */
+        .game-header {
+            width: 100%; padding: 10px 20px;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px; background: rgba(0,0,0,0.5); border-radius: 10px;
+            box-sizing: border-box;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            position: absolute; top: 0; z-index: 50;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .player-info { width: 45%; }
-        .hp-bar-frame {
-            width: 100%; height: 20px; background: #333; border-radius: 10px; overflow: hidden; margin-top: 5px;
+        .home-btn {
+            background: none; border: 1px solid rgba(255,255,255,0.3);
+            color: #fff; padding: 8px 15px; border-radius: 20px;
+            cursor: pointer; font-size: 0.9rem; transition: 0.3s;
         }
-        .hp-bar-fill {
-            height: 100%; background: linear-gradient(90deg, #f1c40f, #2ecc71);
-            width: 100%; transition: width 0.5s ease-out;
-        }
-        .turn-indicator { font-size: 1.5rem; font-weight: bold; color: #f39c12; }
+        .home-btn:hover { background: rgba(255,255,255,0.2); }
 
-        /* 実験エリア */
+        /* --- バトルコンテナ --- */
+        .battle-container {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            padding-top: 60px; /* ヘッダー分 */
+            box-sizing: border-box;
+        }
+
+        /* ステータスバー */
+        .status-area {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            padding: 0 20px; margin-bottom: 10px;
+        }
+        .hp-label { font-size: 0.8rem; color: #aaa; margin-bottom: 3px; }
+        .hp-bar-frame {
+            width: 120px; height: 10px; background: #333;
+            border-radius: 5px; overflow: hidden;
+        }
+        .hp-fill {
+            height: 100%; background: #2ecc71; width: 100%; transition: width 0.5s;
+        }
+        .turn-badge {
+            font-size: 1.5rem; font-weight: 900; color: #fff;
+            text-shadow: 0 0 10px var(--gold);
+        }
+
+        /* アリーナ (中央) */
         .arena {
-            flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative;
+            flex-grow: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            perspective: 800px;
         }
-        .reaction-zone {
-            width: 200px; height: 200px;
-            border: 4px dashed #555; border-radius: 50%;
+        .reaction-circle {
+            width: 180px; height: 180px; border-radius: 50%;
+            border: 2px dashed rgba(255,255,255,0.2);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; color: #aaa;
-            background: rgba(255,255,255,0.05);
+            font-size: 1.2rem; color: rgba(255,255,255,0.3);
+            transition: 0.3s; background: rgba(0,0,0,0.2);
         }
+        .reaction-circle.active {
+            border-color: var(--gold); border-style: solid;
+            box-shadow: 0 0 30px rgba(241, 196, 15, 0.3);
+            color: #fff;
+        }
+        #attack-btn {
+            margin-top: 20px; padding: 12px 40px;
+            font-size: 1.1rem; letter-spacing: 2px; font-weight: bold;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white; border: none; border-radius: 30px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: 0.2s;
+        }
+        #attack-btn:disabled { background: #555; box-shadow: none; opacity: 0.5; }
+        #attack-btn:not(:disabled):active { transform: scale(0.95); }
 
         /* 手札エリア */
         .hand-area {
-            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px;
+            height: 160px; background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            overflow-x: auto; /* 横スクロール対応 */
+            backdrop-filter: blur(5px);
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
-        .card-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-        
+        .card-row {
+            display: flex; padding: 0 20px; gap: 15px;
+        }
+
+        /* --- リアルカードデザイン --- */
         .card {
-            width: 60px; height: 90px;
-            background: white; color: #333; border-radius: 6px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 1rem; font-weight: bold; cursor: pointer; border: 2px solid #999;
+            width: var(--card-width); height: var(--card-height);
+            border-radius: 8px;
+            position: relative; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
             user-select: none;
+            /* 3Dシャドウ */
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.2);
+            background: #ecf0f1;
         }
-        .card.cation { border-color: #e74c3c; background: #fadbd8; }
-        .card.anion { border-color: #3498db; background: #d6eaf8; }
-        .card.selected { transform: translateY(-10px); box-shadow: 0 0 15px gold; border-color: gold; }
-
-        /* アクションボタン */
-        #attack-btn {
-            margin-top: 10px; padding: 10px 40px; font-size: 1.2rem;
-            background: #e94560; color: white; border: none; border-radius: 30px;
-            cursor: pointer;
+        .card:hover { transform: translateY(-10px); z-index: 10; }
+        .card.selected {
+            transform: translateY(-20px) scale(1.1);
+            box-shadow: 0 0 20px var(--gold), 0 10px 20px rgba(0,0,0,0.6);
+            z-index: 15;
+            border: 2px solid var(--gold);
         }
-        #attack-btn:disabled { background: #555; cursor: not-allowed; }
 
-        /* ダメージ演出 */
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 100% { transform: translate(-1px, -2px); } }
-        .shake { animation: shake 0.5s; animation-iteration-count: infinite; }
-
-        /* モーダル（結果表示） */
-        .modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; color: black; padding: 20px; border-radius: 10px;
-            text-align: center; display: none; z-index: 100; box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            width: 80%; max-width: 400px;
+        /* カードの内部構造 */
+        .card-inner {
+            position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px;
+            border-radius: 5px;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.1);
         }
+        /* 陽イオンのデザイン */
+        .cation .card-inner {
+            background: linear-gradient(135deg, #fff 0%, #ffeaa7 100%);
+        }
+        .cation .card-top { background: var(--cation-base); }
+        .cation .card-symbol { color: var(--cation-base); }
+        
+        /* 陰イオンのデザイン */
+        .anion .card-inner {
+            background: linear-gradient(135deg, #fff 0%, #74b9ff 100%);
+        }
+        .anion .card-top { background: var(--anion-base); }
+        .anion .card-symbol { color: var(--anion-base); }
+
+        .card-top {
+            height: 20px; color: white; font-size: 0.6rem;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        .card-main {
+            flex-grow: 1; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.5);
+            position: relative;
+        }
+        .card-symbol {
+            font-size: 1.4rem; font-weight: bold; font-family: 'Times New Roman', serif;
+        }
+        .card-bottom {
+            font-size: 0.55rem; color: #555; text-align: center;
+            padding: 2px; background: rgba(255,255,255,0.8);
+        }
+        
+        /* 光沢エフェクト (Gloss) */
+        .card::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 40%);
+            border-radius: 8px; pointer-events: none;
+        }
+
+        /* --- モーダル (結果表示) --- */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); display: none; z-index: 90;
+            backdrop-filter: blur(4px);
         }
+        .modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            background: #fff; color: #333; padding: 25px; border-radius: 12px;
+            width: 80%; max-width: 350px; text-align: center;
+            display: none; z-index: 100; opacity: 0; transition: 0.3s;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        .modal h2 { margin: 0 0 10px 0; color: #e74c3c; }
+        .modal p { font-size: 0.95rem; line-height: 1.5; color: #555; }
+
+        /* ダメージ演出 */
+        @keyframes shake { 0% { transform: translateX(2px); } 50% { transform: translateX(-2px); } 100% { transform: translateX(0); } }
+        .shake { animation: shake 0.3s 2; }
 
     </style>
 </head>
 <body>
 
     <div id="screen-menu" class="screen active">
-        <h1>⚗️ INORGANIC BATTLE</h1>
-        <button class="menu-btn" onclick="startGame('local')">⚔️ ローカル対戦 (2P)</button>
-        <button class="menu-btn" onclick="startGame('cpu')">🤖 CPU 対戦 (Practice)</button>
-        <button class="menu-btn disabled" onclick="alert('開発中です！GitHubでアップデートを待て！')">🌐 オンライン対戦 (Coming Soon)</button>
+        <h1>Inorganic<br>Battle</h1>
+        <button class="menu-btn" onclick="startGame('local')">⚔️ 2P BATTLE</button>
+        <button class="menu-btn" onclick="startGame('cpu')">🤖 VS CPU</button>
     </div>
 
     <div id="screen-game" class="screen">
+        
+        <div class="game-header">
+            <button class="home-btn" onclick="confirmExit()">🏠 MENU</button>
+            <div style="font-size:0.8rem; opacity:0.7;">INORGANIC ARENA</div>
+        </div>
+
         <div class="battle-container">
-            
-            <div class="status-bar">
-                <div class="player-info">
-                    <div>PLAYER 1</div>
-                    <div class="hp-bar-frame"><div id="p1-hp" class="hp-bar-fill"></div></div>
+            <div class="status-area">
+                <div>
+                    <div class="hp-label" id="p1-name">PLAYER 1</div>
+                    <div class="hp-bar-frame"><div id="p1-hp" class="hp-fill"></div></div>
                 </div>
-                <div class="turn-indicator" id="turn-text">P1 TURN</div>
-                <div class="player-info" style="text-align: right;">
-                    <div>PLAYER 2 (CPU)</div>
-                    <div class="hp-bar-frame"><div id="p2-hp" class="hp-bar-fill" style="margin-left: auto;"></div></div>
+                <div class="turn-badge" id="turn-indicator">VS</div>
+                <div style="text-align: right;">
+                    <div class="hp-label" id="p2-name">PLAYER 2</div>
+                    <div class="hp-bar-frame"><div id="p2-hp" class="hp-fill"></div></div>
                 </div>
             </div>
 
             <div class="arena">
-                <div class="reaction-zone" id="reaction-display">
-                    SELECT CARDS
+                <div class="reaction-circle" id="reaction-zone">
+                    SELECT
                 </div>
-                <button id="attack-btn" onclick="executeTurn()">ATTACK / REACT</button>
+                <button id="attack-btn" onclick="executeTurn()" disabled>REACT!</button>
             </div>
 
             <div class="hand-area">
@@ -155,171 +281,221 @@
     <div class="overlay" id="overlay"></div>
     <div class="modal" id="result-modal">
         <h2 id="modal-title">TITLE</h2>
-        <p id="modal-desc">Description</p>
-        <button class="menu-btn" style="background:#333; width:100%;" onclick="closeModal()">OK</button>
+        <div id="modal-content"></div>
+        <button class="menu-btn" style="color:#333; border-color:#ccc; margin-top:15px; width:100%;" id="modal-ok" onclick="closeModal()">OK</button>
     </div>
 
 <script>
-    // --- ゲームデータ ---
+    // --- データ ---
     const cards = [
-        { id: "Ag+", type: "cation", label: "Ag<sup>+</sup>" },
-        { id: "Cu2+", type: "cation", label: "Cu<sup>2+</sup>" },
-        { id: "Fe3+", type: "cation", label: "Fe<sup>3+</sup>" },
-        { id: "Ba2+", type: "cation", label: "Ba<sup>2+</sup>" },
-        { id: "Cl-", type: "anion", label: "Cl<sup>-</sup>" },
-        { id: "S2-", type: "anion", label: "S<sup>2-</sup>" },
-        { id: "OH-", type: "anion", label: "OH<sup>-</sup>" },
-        { id: "SO4 2-", type: "anion", label: "SO<sub>4</sub><sup>2-</sup>" }
+        { id: "Ag+", type: "cation", sym: "Ag<sup>+</sup>", name: "銀イオン", detail: "重金属" },
+        { id: "Cu2+", type: "cation", sym: "Cu<sup>2+</sup>", name: "銅(II)", detail: "遷移金属" },
+        { id: "Fe3+", type: "cation", sym: "Fe<sup>3+</sup>", name: "鉄(III)", detail: "遷移金属" },
+        { id: "Ba2+", type: "cation", sym: "Ba<sup>2+</sup>", name: "バリウム", detail: "アルカリ土類" },
+        { id: "Pb2+", type: "cation", sym: "Pb<sup>2+</sup>", name: "鉛(II)", detail: "両性金属" },
+        { id: "Cl-", type: "anion", sym: "Cl<sup>-</sup>", name: "塩化物", detail: "ハロゲン" },
+        { id: "S2-", type: "anion", sym: "S<sup>2-</sup>", name: "硫化物", detail: "弱酸遊離" },
+        { id: "OH-", type: "anion", sym: "OH<sup>-</sup>", name: "水酸化物", detail: "塩基性" },
+        { id: "SO4 2-", type: "anion", sym: "SO<sub>4</sub><sup>2-</sup>", name: "硫酸", detail: "強酸塩" }
     ];
 
     const reactions = {
-        "Ag+,Cl-": { power: 20, name: "AgCl (白)", desc: "白色沈殿アタック！" },
-        "Ag+,S2-": { power: 30, name: "Ag2S (黒)", desc: "黒色沈殿。強力なダメージ！" },
-        "Cu2+,S2-": { power: 30, name: "CuS (黒)", desc: "真っ黒な沈殿で視界を奪う！" },
-        "Cu2+,OH-": { power: 25, name: "Cu(OH)2 (青白)", desc: "美しい青白色の劇薬！" },
-        "Fe3+,OH-": { power: 25, name: "Fe(OH)3 (赤褐)", desc: "赤サビ攻撃！" },
-        "Ba2+,SO4 2-": { power: 40, name: "BaSO4 (白)", desc: "X線も通さない絶対防御壁！大ダメージ！" }
+        "Ag+,Cl-": { power: 25, name: "塩化銀 (白)", desc: "光で分解し黒っぽくなる。" },
+        "Ag+,S2-": { power: 35, name: "硫化銀 (黒)", desc: "非常に溶けにくい黒色沈殿。" },
+        "Cu2+,S2-": { power: 35, name: "硫化銅 (黒)", desc: "酸性でも沈殿する。" },
+        "Cu2+,OH-": { power: 30, name: "水酸化銅 (青白)", desc: "加熱で黒色の酸化銅になる。" },
+        "Fe3+,OH-": { power: 30, name: "水酸化鉄 (赤褐)", desc: "赤サビの主成分。" },
+        "Ba2+,SO4 2-": { power: 45, name: "硫酸バリウム (白)", desc: "X線造影剤に使われる。" },
+        "Pb2+,Cl-": { power: 25, name: "塩化鉛 (白)", desc: "熱湯には溶ける。" },
+        "Pb2+,S2-": { power: 35, name: "硫化鉛 (黒)", desc: "黒色沈殿を作る。" },
+        "Pb2+,SO4 2-": { power: 40, name: "硫酸鉛 (白)", desc: "鉛蓄電池の電極。" }
     };
 
-    // --- ゲーム状態管理 ---
-    let gameState = {
-        mode: null, // 'local' or 'cpu'
-        turn: 1, // 1 or 2
-        hp: { 1: 100, 2: 100 },
-        selected: { cation: null, anion: null }
-    };
+    let gameState = { mode: 'local', turn: 1, hp: {1:100, 2:100}, selected: {cation:null, anion:null}, processing: false };
+    const MAX_HP = 150;
 
-    // 画面切り替え
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+    // --- メニュー機能 ---
+    function confirmExit() {
+        if(confirm("対戦を終了してメニューに戻りますか？")) {
+            showScreen('screen-menu');
+        }
     }
 
-    // ゲーム開始
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => {
+            s.classList.remove('active');
+            s.style.opacity = 0;
+        });
+        const target = document.getElementById(id);
+        target.classList.add('active');
+        setTimeout(() => target.style.opacity = 1, 10);
+    }
+
+    // --- ゲーム進行 ---
     function startGame(mode) {
-        gameState.mode = mode;
-        gameState.hp = { 1: 100, 2: 100 };
-        gameState.turn = 1;
+        gameState = { mode: mode, turn: 1, hp: {1:MAX_HP, 2:MAX_HP}, selected: {cation:null, anion:null}, processing: false };
+        document.getElementById('p2-name').innerText = mode === 'cpu' ? "CPU" : "PLAYER 2";
         updateUI();
         renderHand();
         showScreen('screen-game');
     }
 
-    // 手札描画
     function renderHand() {
         const container = document.getElementById('hand-container');
         container.innerHTML = '';
-        cards.forEach(card => {
-            const el = document.createElement('div');
-            el.className = `card ${card.type}`;
-            el.innerHTML = card.label;
-            el.onclick = () => selectCard(card, el);
-            container.appendChild(el);
+        cards.forEach(c => {
+            const div = document.createElement('div');
+            div.className = `card ${c.type}`;
+            div.dataset.id = c.id;
+            div.onclick = () => selectCard(c.id, c.type, div);
+            div.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-top">${c.name}</div>
+                    <div class="card-main"><div class="card-symbol">${c.sym}</div></div>
+                    <div class="card-bottom">${c.detail}</div>
+                </div>
+            `;
+            container.appendChild(div);
         });
+        updateCenter();
     }
 
-    // カード選択
-    function selectCard(card, el) {
-        // 同じタイプの選択を解除
-        const currentSelected = gameState.selected[card.type];
-        if (currentSelected) {
-            // 以前のDOM選択解除処理が必要だが簡略化のため再描画でも可。
-            // 今回はDOMリストから探してclassを消す
-            document.querySelectorAll(`.card.${card.type}`).forEach(c => c.classList.remove('selected'));
+    function selectCard(id, type, el) {
+        if(gameState.processing) return;
+        if(gameState.mode === 'cpu' && gameState.turn === 2) return;
+
+        // Toggle selection
+        if(gameState.selected[type] === id) {
+            gameState.selected[type] = null;
+            el.classList.remove('selected');
+        } else {
+            document.querySelectorAll(`.card.${type}`).forEach(c => c.classList.remove('selected'));
+            gameState.selected[type] = id;
+            el.classList.add('selected');
         }
-
-        el.classList.add('selected');
-        gameState.selected[card.type] = card.id;
-
-        // 中央表示更新
-        const c = gameState.selected.cation || "?";
-        const a = gameState.selected.anion || "?";
-        document.getElementById('reaction-display').innerHTML = `${c} + ${a}`;
+        updateCenter();
     }
 
-    // ターン実行（攻撃）
+    function updateCenter() {
+        const zone = document.getElementById('reaction-zone');
+        const btn = document.getElementById('attack-btn');
+        const {cation, anion} = gameState.selected;
+
+        if(cation && anion) {
+            zone.classList.add('active');
+            zone.innerHTML = "READY";
+            btn.disabled = false;
+        } else {
+            zone.classList.remove('active');
+            const cInfo = cation ? cards.find(x=>x.id===cation).sym : "";
+            const aInfo = anion ? cards.find(x=>x.id===anion).sym : "";
+            zone.innerHTML = cInfo && aInfo ? `${cInfo}<br>+<br>${aInfo}` : (cInfo || aInfo || "SELECT");
+            btn.disabled = true;
+        }
+    }
+
     function executeTurn() {
-        const { cation, anion } = gameState.selected;
-        if (!cation || !anion) {
-            alert("陽イオンと陰イオンを1つずつ選んでください");
-            return;
-        }
-
+        gameState.processing = true;
+        const {cation, anion} = gameState.selected;
         const key = `${cation},${anion}`;
         const reaction = reactions[key];
-        const opponent = gameState.turn === 1 ? 2 : 1;
+        const target = gameState.turn === 1 ? 2 : 1;
+        const isCpu = gameState.mode === 'cpu' && gameState.turn === 2;
 
-        if (reaction) {
-            // 成功：ダメージ計算
-            applyDamage(opponent, reaction.power);
-            showResult(`HIT! -${reaction.power}`, `${reaction.name}<br>${reaction.desc}`);
+        if(reaction) {
+            damage(target, reaction.power);
+            showModal(`HIT! -${reaction.power}`, `<strong>${reaction.name}</strong><br>${reaction.desc}`, isCpu);
         } else {
-            // 失敗：自爆ダメージ（ゲーム性を高めるため）
-            applyDamage(gameState.turn, 10);
-            showResult("MISS...", "反応なし！実験失敗で10ダメージ受けた...");
+            damage(gameState.turn, 15);
+            showModal("MISS...", "反応なし！実験失敗。<br>自分に15ダメージ。", isCpu);
         }
     }
 
-    // ダメージ処理
-    function applyDamage(targetPlayer, damage) {
-        gameState.hp[targetPlayer] -= damage;
-        if (gameState.hp[targetPlayer] < 0) gameState.hp[targetPlayer] = 0;
+    function damage(player, amount) {
+        gameState.hp[player] = Math.max(0, gameState.hp[player] - amount);
+        const bar = document.getElementById(player === 1 ? 'p1-hp' : 'p2-hp');
+        bar.parentElement.classList.add('shake');
+        setTimeout(()=>bar.parentElement.classList.remove('shake'), 500);
         updateUI();
-
-        if (gameState.hp[targetPlayer] <= 0) {
-            setTimeout(() => {
-                alert(`PLAYER ${gameState.turn} WIN!`);
-                showScreen('screen-menu'); // タイトルへ戻る
-            }, 1000);
-        } else {
-            // ターン交代
-            gameState.turn = gameState.turn === 1 ? 2 : 1;
-            gameState.selected = { cation: null, anion: null };
-            renderHand(); // 選択解除のため再描画
-            updateUI();
-            
-            // CPUモードなら自動反撃
-            if (gameState.mode === 'cpu' && gameState.turn === 2) {
-                setTimeout(cpuTurn, 1000);
-            }
-        }
     }
 
-    // 簡単なCPUロジック
-    function cpuTurn() {
-        // ランダムに選ぶ（たまに成功する）
-        const c = cards.filter(c => c.type === 'cation')[Math.floor(Math.random() * 4)];
-        const a = cards.filter(c => c.type === 'anion')[Math.floor(Math.random() * 4)];
-        
-        // 擬似的に選択状態にする
-        gameState.selected.cation = c.id;
-        gameState.selected.anion = a.id;
-        document.getElementById('reaction-display').innerHTML = `CPU is choosing...`;
-
-        setTimeout(executeTurn, 1000);
-    }
-
-    // UI更新
     function updateUI() {
-        document.getElementById('p1-hp').style.width = gameState.hp[1] + "%";
-        document.getElementById('p2-hp').style.width = gameState.hp[2] + "%";
-        document.getElementById('turn-text').innerText = gameState.mode === 'cpu' && gameState.turn === 2 ? "CPU TURN" : `PLAYER ${gameState.turn} TURN`;
-        document.getElementById('reaction-display').innerText = "SELECT CARDS";
+        document.getElementById('p1-hp').style.width = (gameState.hp[1]/MAX_HP*100) + "%";
+        document.getElementById('p2-hp').style.width = (gameState.hp[2]/MAX_HP*100) + "%";
+        document.getElementById('turn-indicator').innerText = 
+            gameState.mode === 'cpu' && gameState.turn === 2 ? "CPU" : `P${gameState.turn}`;
+        
+        // Color update
+        document.getElementById('turn-indicator').style.color = gameState.turn === 1 ? '#3498db' : '#e74c3c';
     }
 
-    // モーダル表示
-    function showResult(title, desc) {
-        document.getElementById('modal-title').innerText = title;
-        document.getElementById('modal-desc').innerHTML = desc;
+    // Modal
+    function showModal(title, content, autoClose) {
+        const modal = document.getElementById('result-modal');
+        document.getElementById('modal-title').innerHTML = title;
+        document.getElementById('modal-content').innerHTML = content;
         document.getElementById('overlay').style.display = 'block';
-        document.getElementById('result-modal').style.display = 'block';
+        modal.style.display = 'block';
+        setTimeout(()=>modal.classList.add('show'), 10);
+
+        document.getElementById('modal-ok').style.display = autoClose ? 'none' : 'block';
+        
+        if(autoClose) {
+            setTimeout(closeModal, 2000);
+        }
     }
 
     function closeModal() {
-        document.getElementById('overlay').style.display = 'none';
-        document.getElementById('result-modal').style.display = 'none';
+        const modal = document.getElementById('result-modal');
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            checkWin();
+        }, 300);
     }
 
+    function checkWin() {
+        if(gameState.hp[1] <= 0 || gameState.hp[2] <= 0) {
+            alert(gameState.hp[1] > 0 ? "PLAYER 1 WIN!" : (gameState.mode === 'cpu' ? "CPU WIN!" : "PLAYER 2 WIN!"));
+            showScreen('screen-menu');
+        } else {
+            gameState.turn = gameState.turn === 1 ? 2 : 1;
+            gameState.selected = {cation:null, anion:null};
+            gameState.processing = false;
+            renderHand();
+            updateUI();
+            if(gameState.mode === 'cpu' && gameState.turn === 2) setTimeout(cpuPlay, 1000);
+        }
+    }
+
+    function cpuPlay() {
+        // Simple AI: 40% hit rate
+        const willHit = Math.random() < 0.4;
+        let c, a;
+        if(willHit) {
+            const keys = Object.keys(reactions);
+            const pair = keys[Math.floor(Math.random()*keys.length)].split(',');
+            c = pair[0]; a = pair[1];
+        } else {
+            const cList = cards.filter(x=>x.type==='cation');
+            const aList = cards.filter(x=>x.type==='anion');
+            c = cList[Math.floor(Math.random()*cList.length)].id;
+            a = aList[Math.floor(Math.random()*aList.length)].id;
+        }
+        
+        // Visual selection
+        const cEl = document.querySelector(`.card[data-id="${c}"]`);
+        const aEl = document.querySelector(`.card[data-id="${a}"]`);
+        if(cEl) cEl.classList.add('selected');
+        
+        setTimeout(() => {
+            if(aEl) aEl.classList.add('selected');
+            gameState.selected = {cation: c, anion: a};
+            updateCenter();
+            setTimeout(executeTurn, 1000);
+        }, 800);
+    }
 </script>
 </body>
 </html>
