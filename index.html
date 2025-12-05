@@ -37,18 +37,26 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* タイトル画面 */
+        /* ▼▼▼ 修正ポイント：タイトル文字 ▼▼▼ */
         .app-title {
             font-size: 3rem;
             font-weight: 900;
             text-align: center;
             margin: 40px 0 10px;
             letter-spacing: 2px;
+            
+            /* グラデーション設定 */
             background: linear-gradient(to bottom, #fff, #aaa);
-            -webkit-background-clip: text;
+            
+            /* 標準プロパティ（これを足すと警告が消える） */
             background-clip: text;
+            color: transparent;
+
+            /* ベンダープレフィックス（Chrome/Safari用） */
+            -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .subtitle {
             text-align: center;
             color: #888;
@@ -149,7 +157,21 @@
             transition: transform 0.3s;
         }
         .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .card-name { margin: 0; font-size: 1.4rem; font-weight: bold; }
+        
+        /* ▼▼▼ 修正ポイント：カード名のグラデーション ▼▼▼ */
+        .card-name { 
+            margin: 0; 
+            font-size: 1.4rem; 
+            font-weight: bold;
+            
+            /* ここも標準対応を追加 */
+            background: linear-gradient(to right, #fff, #bbb);
+            background-clip: text;
+            color: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
         .card-hp { color: #ff6b6b; font-weight: bold; }
         .card-image {
             width: 100%; height: 160px;
