@@ -1,85 +1,63 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chemical Card Battle</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-    <h1 class="game-title">CHEMICAL BATTLE</h1>
+<div id="battle-screen" class="screen" style="display: none;">
+    <div class="battle-header">
+        <button class="back-btn" onclick="goTitle()">撤退</button>
+        <span id="battle-info-text">VS CPU</span>
+    </div>
 
     <div class="battle-field">
-        
-        <div class="chem-card acid-type">
+        <div class="chem-card acid-type enemy-card">
             <div class="card-header">
-                <h2 class="card-name">濃硫酸</h2>
-                <span class="card-hp">HP <span class="hp-value">120</span></span>
+                <h2 class="card-name">敵物質</h2>
+                <span class="card-hp">HP <span class="hp-value">100</span></span>
             </div>
-            <div class="card-image">
-                <img src="https://placehold.co/280x160/222/FFF?text=H₂SO₄" alt="濃硫酸">
+            <div class="card-image"><img src="https://placehold.co/280x160/222/FFF?text=Enemy" alt=""></div>
             </div>
-            <div class="type-badge">無機 / 酸</div>
-            <div class="skills-section">
-                <div class="skill">
-                    <div class="skill-cost">●●</div>
-                    <div class="skill-detail">
-                        <h3>脱水作用</h3>
-                        <p class="skill-desc">有機物のHPを半分にする。</p>
-                    </div>
-                    <div class="skill-damage">--</div>
-                </div>
-                <div class="skill">
-                    <div class="skill-cost">●●●</div>
-                    <div class="skill-detail">
-                        <h3>酸化溶解</h3>
-                        <p class="skill-desc">金属を溶かし熱ダメージ。</p>
-                    </div>
-                    <div class="skill-damage">90</div>
-                </div>
-            </div>
-            <div class="flavor-text">
-                <p>不揮発性の酸。水に溶かすと激しく発熱する。</p>
-            </div>
-        </div>
 
         <div class="vs-sign">VS</div>
 
-        <div class="chem-card organic-type">
+        <div class="chem-card organic-type player-card">
             <div class="card-header">
-                <h2 class="card-name">ベンゼン</h2>
+                <h2 class="card-name">YOU</h2>
                 <span class="card-hp">HP <span class="hp-value">100</span></span>
             </div>
-            <div class="card-image">
-                <img src="https://placehold.co/280x160/444/FFF?text=C₆H₆" alt="ベンゼン">
+            
+            <div class="energy-display">
+                <span class="energy-label">ENERGY:</span>
+                <div id="player-energy" class="energy-slots">
+                    <span class="energy-dot empty"></span>
+                    <span class="energy-dot empty"></span>
+                    <span class="energy-dot empty"></span>
+                </div>
             </div>
-            <div class="type-badge">有機 / 芳香族</div>
+
+            <div class="card-image"><img src="https://placehold.co/280x160/0055aa/FFF?text=YOU" alt=""></div>
+            
             <div class="skills-section">
-                <div class="skill">
+                <button class="skill-btn" onclick="useSkill(1, 20)">
                     <div class="skill-cost">●</div>
-                    <div class="skill-detail">
-                        <h3>共鳴安定</h3>
-                        <p class="skill-desc">次のターン、ダメージ無効。</p>
+                    <div class="skill-info">
+                        <h3>基本攻撃</h3>
+                        <span>威力 20</span>
                     </div>
-                    <div class="skill-damage">--</div>
-                </div>
-                <div class="skill">
+                </button>
+                <button class="skill-btn" onclick="useSkill(2, 50)">
                     <div class="skill-cost">●●</div>
-                    <div class="skill-detail">
-                        <h3>置換反応</h3>
-                        <p class="skill-desc">触媒がある時、追加攻撃。</p>
+                    <div class="skill-info">
+                        <h3>強力反応</h3>
+                        <span>威力 50</span>
                     </div>
-                    <div class="skill-damage">70</div>
-                </div>
-            </div>
-            <div class="flavor-text">
-                <p>正六角形の構造を持つ。特異臭のある無色の液体。</p>
+                </button>
             </div>
         </div>
-
     </div>
 
-    <script src="script.js"></script>
-</body>
-</html>
+    <div id="quiz-modal" class="modal-overlay" style="display: none;">
+        <div class="quiz-card">
+            <h3 class="quiz-title">エネルギーチャージ！</h3>
+            <p id="quiz-question">ここに問題文が表示されます。</p>
+            <div id="quiz-options" class="quiz-options">
+                </div>
+            <p id="quiz-feedback" class="quiz-feedback"></p>
+        </div>
+    </div>
+</div>

@@ -1,175 +1,88 @@
-@charset "UTF-8";
-
-body {
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    min-height: 100vh;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.game-title {
-    font-size: 2.5rem;
-    letter-spacing: 5px;
-    margin-bottom: 40px;
-    text-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
-
-.battle-field {
+/* --- エネルギー表示 --- */
+.energy-display {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
-}
-
-.vs-sign {
-    font-size: 3rem;
-    font-weight: bold;
-    font-style: italic;
-    text-shadow: 0 0 15px #ff0055;
-    animation: pulse 2s infinite; /* VSマークが鼓動する */
-}
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* カード本体 */
-.chem-card {
-    width: 300px;
-    height: 480px;
-    padding: 20px;
-    border-radius: 20px;
-    position: relative;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    cursor: pointer; /* クリックできる感 */
-    user-select: none; /* 文字選択されないようにする */
-}
-
-.chem-card:hover {
-    transform: translateY(-15px) scale(1.02);
-    box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.5);
-    z-index: 10;
-}
-
-/* カード内部 */
-.card-header {
-    display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+    background: rgba(0,0,0,0.5);
+    padding: 5px 10px;
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+.energy-label { font-size: 0.7rem; color: #ffd700; font-weight: bold; }
+
+.energy-slots { display: flex; gap: 5px; }
+.energy-dot {
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    background: #333; /* 空の状態 */
+    border: 1px solid #555;
+    box-shadow: inset 0 0 5px #000;
+}
+.energy-dot.filled {
+    background: radial-gradient(circle at 30% 30%, #ffd700, #ff8c00); /* 金色に光る */
+    box-shadow: 0 0 10px #ffd700;
+    border: 1px solid #fff;
 }
 
-.card-name {
-    margin: 0;
-    font-size: 1.6rem;
-    font-weight: 800;
-    background: linear-gradient(to right, #fff, #bbb);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 2px 10px rgba(255,255,255,0.2);
-}
-
-.card-hp {
-    font-weight: bold;
-    color: #ff6b6b;
-}
-.hp-value {
-    font-size: 1.4rem;
-}
-
-.card-image {
+/* --- 技ボタン（クリックできるように変更） --- */
+.skill-btn {
     width: 100%;
-    height: 160px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 12px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(0,0,0,0.3);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.card-image img { width: 100%; height: 100%; object-fit: cover; }
-
-.type-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    margin-bottom: 15px;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.2);
-    align-self: flex-start;
-}
-
-.skills-section { flex-grow: 1; }
-
-.skill {
-    display: flex;
-    align-items: center;
-    padding: 8px 0;
+    background: none;
+    border: none;
     border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 10px 5px;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
 }
-.skill:last-child { border-bottom: none; }
+.skill-btn:hover { background: rgba(255,255,255,0.1); }
+.skill-btn:disabled { opacity: 0.3; cursor: not-allowed; } /* エネ不足の時 */
 
 .skill-cost {
-    font-size: 0.7rem;
-    color: #ffd700;
-    margin-right: 8px;
-    letter-spacing: -2px;
+    color: #ffd700; margin-right: 10px; font-size: 0.8rem; letter-spacing: -2px; width: 30px;
 }
+.skill-info h3 { margin: 0; font-size: 0.9rem; }
+.skill-info span { font-size: 0.75rem; color: #aaa; }
 
-.skill-detail h3 { margin: 0; font-size: 1rem; font-weight: 600; }
-.skill-desc { margin: 2px 0 0; font-size: 0.7rem; color: rgba(255,255,255,0.7); }
-.skill-damage {
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-left: auto;
-    font-family: 'Courier New', Courier, monospace;
+/* --- クイズモーダル --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(5px);
 }
+.quiz-card {
+    background: #1a2a6c;
+    border: 2px solid #00d2ff;
+    padding: 20px;
+    border-radius: 20px;
+    width: 90%; max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 210, 255, 0.5);
+    animation: popIn 0.3s;
+}
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+.quiz-title { margin-top: 0; color: #00d2ff; }
+#quiz-question { font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; }
 
-.flavor-text {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.6);
-    font-style: italic;
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.option-btn {
+    padding: 12px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
 }
-
-/* ▼▼▼ 追加：ダメージ演出のアニメーション ▼▼▼ */
-@keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-5px) rotate(-5deg); }
-  50% { transform: translateX(5px) rotate(5deg); }
-  75% { transform: translateX(-5px) rotate(-5deg); }
-  100% { transform: translateX(0); }
-}
-
-.shake {
-    animation: shake 0.4s ease-in-out;
-    border: 2px solid #ff3333 !important; /* 赤枠でダメージ感を出す */
-    background: rgba(255, 0, 0, 0.2) !important; /* 背景も少し赤く */
-}
-
-/* 倒された状態 */
-.defeated {
-    opacity: 0.5;
-    filter: grayscale(100%); /* モノクロにする */
-    pointer-events: none; /* クリックできなくする */
-    transform: scale(0.95);
-}
+.option-btn:hover { background: rgba(255,255,255,0.3); }
+.option-btn.correct { background: #28a745; border-color: #28a745; }
+.option-btn.wrong { background: #dc3545; border-color: #dc3545; }
