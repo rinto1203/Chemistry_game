@@ -1,63 +1,147 @@
-<div id="battle-screen" class="screen" style="display: none;">
-    <div class="battle-header">
-        <button class="back-btn" onclick="goTitle()">撤退</button>
-        <span id="battle-info-text">VS CPU</span>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inorganic Chem Battle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="title-screen" class="screen" style="display: flex;">
+        <h1 class="app-title">CHEMISTRY<br>POCKET</h1>
+        <p class="subtitle">高校無機化学 完全攻略</p>
+
+        <div class="mode-select-container">
+            <button class="mode-card solo-mode" onclick="selectMode('cpu')">
+                <div class="mode-icon">👤</div>
+                <div class="mode-text">
+                    <h3>ソロクエスト</h3>
+                    <p>CPUと対戦して学習</p>
+                </div>
+            </button>
+
+            <button class="mode-card online-mode" onclick="selectMode('online')">
+                <div class="mode-icon">📡</div>
+                <div class="mode-text">
+                    <h3>通信対戦</h3>
+                    <p>ルームIDで友達と勝負</p>
+                </div>
+            </button>
+        </div>
     </div>
 
-    <div class="battle-field">
-        <div class="chem-card acid-type enemy-card">
-            <div class="card-header">
-                <h2 class="card-name">敵物質</h2>
-                <span class="card-hp">HP <span class="hp-value">100</span></span>
+    <div id="lobby-screen" class="screen" style="display: none;">
+        <h2>通信ルーム入室</h2>
+        <div class="lobby-container">
+            <p>友達と同じIDを入力</p>
+            <input type="text" id="room-id-input" placeholder="例: 1234" maxlength="4">
+            <div class="lobby-buttons">
+                <button class="lobby-btn create" onclick="enterRoom('create')">作成</button>
+                <button class="lobby-btn join" onclick="enterRoom('join')">参加</button>
             </div>
-            <div class="card-image"><img src="https://placehold.co/280x160/222/FFF?text=Enemy" alt=""></div>
-            </div>
+            <button class="back-text-btn" onclick="goTitle()">戻る</button>
+        </div>
+    </div>
 
-        <div class="vs-sign">VS</div>
-
-        <div class="chem-card organic-type player-card">
-            <div class="card-header">
-                <h2 class="card-name">YOU</h2>
-                <span class="card-hp">HP <span class="hp-value">100</span></span>
+    <div id="area-select-screen" class="screen" style="display: none;">
+        <div class="header-nav">
+            <button class="back-text-btn" onclick="goTitle()">TOPへ</button>
+            <h2>エリア選択</h2>
+        </div>
+        
+        <div class="stage-grid">
+            <div class="stage-card" onclick="startGame('halogen')">
+                <div class="stage-icon">Cl</div>
+                <div class="stage-info"><h3>17族・ハロゲン</h3></div>
             </div>
-            
-            <div class="energy-display">
-                <span class="energy-label">ENERGY:</span>
-                <div id="player-energy" class="energy-slots">
-                    <span class="energy-dot empty"></span>
-                    <span class="energy-dot empty"></span>
-                    <span class="energy-dot empty"></span>
-                </div>
+            <div class="stage-card" onclick="startGame('sulfur')">
+                <div class="stage-icon">S</div>
+                <div class="stage-info"><h3>酸素・硫黄</h3></div>
             </div>
-
-            <div class="card-image"><img src="https://placehold.co/280x160/0055aa/FFF?text=YOU" alt=""></div>
-            
-            <div class="skills-section">
-                <button class="skill-btn" onclick="useSkill(1, 20)">
-                    <div class="skill-cost">●</div>
-                    <div class="skill-info">
-                        <h3>基本攻撃</h3>
-                        <span>威力 20</span>
-                    </div>
-                </button>
-                <button class="skill-btn" onclick="useSkill(2, 50)">
-                    <div class="skill-cost">●●</div>
-                    <div class="skill-info">
-                        <h3>強力反応</h3>
-                        <span>威力 50</span>
-                    </div>
-                </button>
+            <div class="stage-card" onclick="startGame('gas')">
+                <div class="stage-icon">Gas</div>
+                <div class="stage-info"><h3>気体の製法</h3></div>
+            </div>
+            <div class="stage-card" onclick="startGame('transition')">
+                <div class="stage-icon">Fe</div>
+                <div class="stage-info"><h3>遷移金属</h3></div>
             </div>
         </div>
     </div>
 
-    <div id="quiz-modal" class="modal-overlay" style="display: none;">
-        <div class="quiz-card">
-            <h3 class="quiz-title">エネルギーチャージ！</h3>
-            <p id="quiz-question">ここに問題文が表示されます。</p>
-            <div id="quiz-options" class="quiz-options">
+    <div id="battle-screen" class="screen" style="display: none;">
+        <div class="battle-header">
+            <button class="back-btn" onclick="goTitle()">撤退</button>
+            <span id="battle-info-text">VS CPU</span>
+        </div>
+
+        <div class="battle-field">
+            <div class="chem-card acid-type enemy-card">
+                <div class="card-header">
+                    <h2 class="card-name">敵物質</h2>
+                    <span class="card-hp">HP <span class="hp-value">100</span></span>
                 </div>
-            <p id="quiz-feedback" class="quiz-feedback"></p>
+                <div class="card-image">
+                    <img src="https://placehold.co/280x160/222/FFF?text=Enemy" alt="敵">
+                </div>
+                <div class="type-badge">BOSS</div>
+            </div>
+
+            <div class="vs-sign">VS</div>
+
+            <div class="chem-card organic-type player-card">
+                <div class="card-header">
+                    <h2 class="card-name">YOU</h2>
+                    <span class="card-hp">HP <span class="hp-value">100</span></span>
+                </div>
+                
+                <div class="energy-display">
+                    <span class="energy-label">ENERGY:</span>
+                    <div id="player-energy" class="energy-slots">
+                        <span class="energy-dot empty"></span>
+                        <span class="energy-dot empty"></span>
+                        <span class="energy-dot empty"></span>
+                    </div>
+                </div>
+
+                <div class="card-image">
+                    <img src="https://placehold.co/280x160/0055aa/FFF?text=YOU" alt="自分">
+                </div>
+                
+                <div class="skills-section">
+                    <button class="skill-btn" onclick="useSkill(1, 20)">
+                        <div class="skill-cost">●</div>
+                        <div class="skill-info">
+                            <h3>基本攻撃</h3>
+                            <span>威力 20</span>
+                        </div>
+                    </button>
+                    <button class="skill-btn" onclick="useSkill(2, 50)">
+                        <div class="skill-cost">●●</div>
+                        <div class="skill-info">
+                            <h3>スペシャル技</h3>
+                            <span>威力 50</span>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="flavor-text">
+                    <p id="turn-message">クイズに答えてエネルギーを溜めろ！</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="quiz-modal" class="modal-overlay" style="display: none;">
+            <div class="quiz-card">
+                <h3 class="quiz-title">エネルギーチャージ！</h3>
+                <p id="quiz-question">ここに問題文</p>
+                <div id="quiz-options" class="quiz-options"></div>
+                <p id="quiz-feedback" class="quiz-feedback"></p>
+            </div>
         </div>
     </div>
-</div>
+
+    <script src="script.js"></script>
+</body>
+</html>

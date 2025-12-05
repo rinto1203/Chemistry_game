@@ -1,110 +1,137 @@
-// --- データ：クイズリスト（本来は別ファイルやサーバーから取得） ---
+// --- クイズデータ ---
 const quizData = {
     halogen: [
-        { q: "次の中で常温で液体のハロゲンは？", options: ["フッ素", "塩素", "臭素", "ヨウ素"], ans: 2 }, // 0始まりなので2は臭素
+        { q: "常温で液体のハロゲンは？", options: ["フッ素", "塩素", "臭素", "ヨウ素"], ans: 2 },
         { q: "フッ化水素酸が溶かすものは？", options: ["金", "ガラス", "ゴム", "プラスチック"], ans: 1 },
-        { q: "次の中で最も酸化力が強いのは？", options: ["F₂", "Cl₂", "Br₂", "I₂"], ans: 0 }
+        { q: "酸化力が最も強いのは？", options: ["F₂", "Cl₂", "Br₂", "I₂"], ans: 0 }
     ],
     sulfur: [
-        { q: "接触法で触媒として用いられるのは？", options: ["酸化バナジウム(V)", "白金", "鉄", "酸化マンガン(IV)"], ans: 0 },
-        { q: "腐卵臭を持つ有毒な気体は？", options: ["SO₂", "H₂S", "O₃", "SO₃"], ans: 1 }
+        { q: "接触法の触媒は？", options: ["酸化バナジウム(V)", "白金", "鉄", "銅"], ans: 0 },
+        { q: "腐卵臭を持つ気体は？", options: ["SO₂", "H₂S", "O₃", "SO₃"], ans: 1 }
     ],
-    // 他の分野も同様に...
     default: [
-        { q: "原子番号1番の元素は？", options: ["He", "H", "Li", "Be"], ans: 1 }
+        { q: "原子番号1番の元素は？", options: ["He", "H", "Li", "Be"], ans: 1 },
+        { q: "炎色反応で赤色を示すのは？", options: ["Na", "Cu", "Li", "K"], ans: 2 }
     ]
 };
 
 // --- 変数 ---
-let playerEnergy = 0; // 現在のエネルギー
+let playerEnergy = 0;
+let isOnlineMode = false;
 let currentAreaId = 'default';
 
-// --- バトル開始処理（更新） ---
+// --- 画面管理 ---
+const screens = {
+    title: document.getElementById('title-screen'),
+    lobby: document.getElementById('lobby-screen'),
+    areaSelect: document.getElementById('area-select-screen'),
+    battle: document.getElementById('battle-screen')
+};
+
+function showScreen(name) {
+    Object.values(screens).forEach(s => s.style.display = 'none');
+    screens[name].style.display = 'flex';
+}
+
+// --- モード選択など ---
+function selectMode(mode) {
+    if (mode === 'cpu') {
+        isOnlineMode = false;
+        showScreen('areaSelect');
+    } else {
+        isOnlineMode = true;
+        showScreen('lobby');
+    }
+}
+
+function goTitle() {
+    showScreen('title');
+}
+
+function enterRoom(action) {
+    const roomId = document.getElementById('room-id-input').value;
+    if (!roomId) { alert("IDを入力してください"); return; }
+    alert(`ルーム ${roomId} に入室しました（通信は未実装）`);
+    startGame('online');
+}
+
+// --- バトル開始 ---
 function startGame(areaId) {
     showScreen('battle');
     currentAreaId = areaId;
-    
-    // 初期化
     playerEnergy = 0;
     updateEnergyUI();
-    
-    // 敵の名前などを設定（前回のコード参照）...
+    checkSkillsAvailability();
 
-    // ★ターン開始：いきなりクイズ！★
-    setTimeout(startPlayerTurn, 1000);
+    // 敵名の設定
+    const enemyName = document.querySelector('.enemy-card .card-name');
+    if (areaId === 'halogen') enemyName.innerText = "塩素 (Cl₂)";
+    else if (areaId === 'sulfur') enemyName.innerText = "濃硫酸";
+    else enemyName.innerText = "謎の物質";
+
+    document.getElementById('turn-message').innerText = "クイズに答えてチャージせよ！";
+
+    // 1秒後にクイズ開始（プレイヤーのターン）
+    if(!isOnlineMode) {
+        setTimeout(startPlayerTurn, 1000);
+    }
 }
 
-// --- プレイヤーのターン開始（クイズ出題） ---
+// --- ターン処理（クイズ） ---
 function startPlayerTurn() {
-    // 1. クイズデータを取得
     const questions = quizData[currentAreaId] || quizData['default'];
-    // ランダムに1問選ぶ
     const question = questions[Math.floor(Math.random() * questions.length)];
-    
-    // 2. モーダルを表示
     showQuizModal(question);
 }
 
-// クイズ表示
-function showQuizModal(questionObj) {
+function showQuizModal(qObj) {
     const modal = document.getElementById('quiz-modal');
-    const qText = document.getElementById('quiz-question');
-    const optionsDiv = document.getElementById('quiz-options');
-    const feedback = document.getElementById('quiz-feedback');
-    
+    document.getElementById('quiz-question').innerText = qObj.q;
+    const optsDiv = document.getElementById('quiz-options');
+    optsDiv.innerHTML = '';
+    document.getElementById('quiz-feedback').innerText = '';
     modal.style.display = 'flex';
-    qText.innerText = questionObj.q;
-    optionsDiv.innerHTML = ''; // ボタンをクリア
-    feedback.innerText = '';
 
-    // 選択肢ボタンを作成
-    questionObj.options.forEach((opt, index) => {
+    qObj.options.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.innerText = opt;
-        btn.onclick = () => checkAnswer(index, questionObj.ans, btn);
-        optionsDiv.appendChild(btn);
+        btn.onclick = () => checkAnswer(idx, qObj.ans, btn);
+        optsDiv.appendChild(btn);
     });
 }
 
-// 正解判定
-function checkAnswer(selectedIndex, correctIndex, btnElement) {
-    const feedback = document.getElementById('quiz-feedback');
-    
-    if (selectedIndex === correctIndex) {
-        // 正解！
-        btnElement.classList.add('correct');
-        feedback.innerText = "正解！エネルギー充填！";
-        feedback.style.color = "#00d2ff";
-        
-        // エネルギー増加
-        playerEnergy++;
-        if(playerEnergy > 3) playerEnergy = 3; // 最大3つまで
-        updateEnergyUI();
-
-    } else {
-        // 不正解...
-        btnElement.classList.add('wrong');
-        feedback.innerText = "不正解... チャージ失敗";
-        feedback.style.color = "#ff4b2b";
-    }
-
-    // すべてのボタンを押せなくする
+function checkAnswer(idx, ans, btn) {
+    const fb = document.getElementById('quiz-feedback');
     const allBtns = document.querySelectorAll('.option-btn');
     allBtns.forEach(b => b.disabled = true);
 
-    // 1.5秒後に閉じてメインフェーズへ
+    if (idx === ans) {
+        btn.classList.add('correct');
+        fb.innerText = "正解！チャージ完了！";
+        fb.style.color = "#00d2ff";
+        playerEnergy++;
+        if(playerEnergy > 3) playerEnergy = 3;
+    } else {
+        btn.classList.add('wrong');
+        fb.innerText = "不正解...";
+        fb.style.color = "#ff4b2b";
+    }
+
+    updateEnergyUI();
+    
     setTimeout(() => {
         document.getElementById('quiz-modal').style.display = 'none';
-        checkSkillsAvailability(); // 技が使えるかチェック
+        checkSkillsAvailability();
+        document.getElementById('turn-message').innerText = "技を選択して攻撃だ！";
     }, 1500);
 }
 
-// エネルギー表示の更新
+// --- エネルギー・技 ---
 function updateEnergyUI() {
     const dots = document.querySelectorAll('.energy-dot');
-    dots.forEach((dot, index) => {
-        if (index < playerEnergy) {
+    dots.forEach((dot, i) => {
+        if (i < playerEnergy) {
             dot.classList.add('filled');
             dot.classList.remove('empty');
         } else {
@@ -114,25 +141,18 @@ function updateEnergyUI() {
     });
 }
 
-// 技ボタンの有効化/無効化チェック
 function checkSkillsAvailability() {
-    // ※index.htmlのボタンで onclick="useSkill(1, 20)" のように設定してください
-    const buttons = document.querySelectorAll('.skill-btn');
-    
-    // ボタンの並び順とコストが一致している前提（あるいはdata属性で管理）
-    // 今回は簡易的に 1つ目がコスト1、2つ目がコスト2とします
-    if (buttons[0]) buttons[0].disabled = (playerEnergy < 1);
-    if (buttons[1]) buttons[1].disabled = (playerEnergy < 2);
+    const btns = document.querySelectorAll('.skill-btn');
+    if(btns[0]) btns[0].disabled = (playerEnergy < 1);
+    if(btns[1]) btns[1].disabled = (playerEnergy < 2);
 }
 
-// --- 技発動 ---
 function useSkill(cost, damage) {
-    if (playerEnergy < cost) return; // 念のため
-
-    // コスト消費
+    if (playerEnergy < cost) return;
+    
     playerEnergy -= cost;
     updateEnergyUI();
-    checkSkillsAvailability(); // ボタン状態更新
+    checkSkillsAvailability();
 
     // ダメージ処理
     const enemyHpSpan = document.querySelector('.enemy-card .hp-value');
@@ -140,14 +160,38 @@ function useSkill(cost, damage) {
     hp -= damage;
     if (hp < 0) hp = 0;
     enemyHpSpan.innerText = hp;
-    
-    // 演出
-    document.querySelector('.enemy-card').classList.add('shake');
-    setTimeout(() => document.querySelector('.enemy-card').classList.remove('shake'), 400);
 
-    // ターン終了 → 相手のターンへ
-    document.getElementById('turn-message').innerText = "敵のターン...";
-    setTimeout(cpuAttack, 1000);
+    // 演出
+    const enemyCard = document.querySelector('.enemy-card');
+    enemyCard.classList.add('shake');
+    setTimeout(() => enemyCard.classList.remove('shake'), 400);
+
+    // 敵のターンへ
+    if (hp > 0) {
+        document.getElementById('turn-message').innerText = "敵のターン...";
+        setTimeout(cpuAttack, 1500);
+    } else {
+        alert("勝利！結合を破壊しました！");
+        goTitle();
+    }
 }
 
-// ...cpuAttackなどは前回のまま...
+function cpuAttack() {
+    const myHpSpan = document.querySelector('.player-card .hp-value');
+    let hp = parseInt(myHpSpan.innerText);
+    hp -= 15;
+    if (hp < 0) hp = 0;
+    myHpSpan.innerText = hp;
+
+    const myCard = document.querySelector('.player-card');
+    myCard.classList.add('shake');
+    setTimeout(() => myCard.classList.remove('shake'), 400);
+
+    if (hp > 0) {
+        document.getElementById('turn-message').innerText = "あなたのターン！";
+        setTimeout(startPlayerTurn, 1000);
+    } else {
+        alert("敗北...実験失敗...");
+        goTitle();
+    }
+}
