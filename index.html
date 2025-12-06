@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSMIC CHEMISTRY V2.0</title>
+    <title>COSMIC CHEMISTRY V3.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;900&family=Zen+Dots&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,620 +11,667 @@
             --neon-blue: #0066ff;
             --neon-pink: #ff0055;
             --neon-gold: #ffd700;
-            --neon-green: #00ff9d;
+            --neon-purple: #bc13fe;
             --bg-dark: #050b14;
+            --glass: rgba(10, 20, 30, 0.7);
             --font-main: 'Rajdhani', sans-serif;
             --font-jp: 'Zen Dots', sans-serif;
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-
         body {
             margin: 0; padding: 0;
             background-color: var(--bg-dark);
             background-image: 
                 radial-gradient(circle at 50% 120%, #1a0b2e 0%, #000000 70%),
-                radial-gradient(circle at 20% 20%, rgba(0, 243, 255, 0.1) 0%, transparent 40%);
+                linear-gradient(0deg, rgba(0,243,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,243,255,0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
             font-family: var(--font-main);
             color: #fff;
             height: 100dvh; width: 100vw;
             overflow: hidden;
-            display: flex; flex-direction: column;
         }
 
-        /* --- 3D & ホログラム用スタイル --- */
+        /* --- 共通コンポーネント --- */
+        .screen {
+            position: absolute; inset: 0; display: none; flex-direction: column;
+            z-index: 10; opacity: 0; transition: opacity 0.5s;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
+        }
+        .screen.active { display: flex; opacity: 1; }
+
+        .cyber-btn {
+            background: rgba(0, 243, 255, 0.05); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+            padding: 12px 30px; font-weight: 900; letter-spacing: 2px; cursor: pointer; text-align: center;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.3s; text-transform: uppercase; position: relative; overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,243,255,0.1);
+        }
+        .cyber-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        .cyber-btn.gold { border-color: var(--neon-gold); color: var(--neon-gold); }
+        .cyber-btn.gold:hover { background: var(--neon-gold); color: #000; box-shadow: 0 0 20px var(--neon-gold); }
+        .cyber-btn.pink { border-color: var(--neon-pink); color: var(--neon-pink); }
+        .cyber-btn.pink:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px var(--neon-pink); }
+
+        /* --- リアルなカードスタイル --- */
         .card-scene {
-            perspective: 1000px;
-            width: 140px; height: 200px;
-            position: relative;
-            transition: transform 0.3s;
+            width: 130px; height: 180px; perspective: 1000px;
+            position: relative; margin: 5px; cursor: pointer;
         }
-
-        .card-frame {
-            width: 100%; height: 100%;
-            position: relative;
-            background: rgba(10, 15, 25, 0.95);
-            border: 2px solid var(--neon-blue);
-            border-radius: 10px;
-            /* テック風クリップ */
-            clip-path: polygon(
-                0 15px, 15px 0, 100% 0, 100% calc(100% - 15px), 
-                calc(100% - 15px) 100%, 0 100%
-            );
-            display: flex; flex-direction: column; padding: 5px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: transform 0.1s ease-out; /* マウス追従用 */
-            transform-style: preserve-3d;
-            overflow: hidden;
+        .card-obj {
+            width: 100%; height: 100%; position: relative;
+            transform-style: preserve-3d; transition: transform 0.1s;
+            border-radius: 8px;
         }
-
-        /* キラキラ反射レイヤー */
-        .card-shine {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(
-                125deg, 
-                transparent 0%, 
-                rgba(255,255,255,0) 40%, 
-                rgba(255,255,255,0.4) 47%, 
-                rgba(255,255,255,0) 54%, 
-                transparent 100%
-            );
-            opacity: 0; mix-blend-mode: overlay; pointer-events: none; z-index: 10;
-            transition: opacity 0.3s;
-            transform: translateZ(1px);
+        .card-face {
+            position: absolute; inset: 0; border-radius: 8px; overflow: hidden;
+            background: #0a0f19; border: 2px solid #333;
+            /* ハニカムテクスチャ */
+            background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 4px 4px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
         
-        /* レア度が高いときの虹色ホログラム */
-        .rarity-3 .card-shine {
-            background: linear-gradient(
-                125deg, 
-                transparent 20%, 
-                rgba(255,0,0,0.4) 40%, 
-                rgba(0,255,0,0.4) 50%, 
-                rgba(0,0,255,0.4) 60%, 
-                transparent 80%
-            );
+        /* ホログラム反射層 */
+        .holo-layer {
+            position: absolute; inset: 0; pointer-events: none; z-index: 10; opacity: 0.6;
+            background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0) 60%);
+            mix-blend-mode: overlay; transition: opacity 0.3s;
+            background-size: 200% 200%;
+        }
+        /* レアカード用レインボーホロ */
+        .rarity-3 .holo-layer {
+            background: linear-gradient(115deg, transparent 30%, rgba(255,0,0,0.3) 40%, rgba(0,255,0,0.3) 50%, rgba(0,0,255,0.3) 60%, transparent 70%);
             mix-blend-mode: color-dodge;
         }
 
-        .card-frame:hover .card-shine { opacity: 1; }
-
-        /* レアリティ枠色 */
-        .rarity-1 { border-color: #555; }
-        .rarity-2 { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
-        .rarity-3 { border-color: var(--neon-gold); box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); }
-
         .card-art {
-            flex: 1; background: #000; margin: 4px; position: relative; overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1); 
-            display: flex; justify-content: center; align-items: center;
+            position: absolute; top: 25px; left: 5px; right: 5px; bottom: 60px;
+            background: #000; border: 1px solid rgba(255,255,255,0.2);
         }
-        .card-art img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; pointer-events: none; }
+        .card-art img { width: 100%; height: 100%; object-fit: cover; }
         
-        .card-info { padding: 5px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); position:absolute; bottom:0; width:100%; }
-        .card-name { font-size: 0.75rem; color: #fff; font-weight: bold; text-shadow:0 0 5px var(--neon-cyan); }
-        .card-effect { font-size: 0.6rem; color: #aaa; margin-top:2px; line-height:1.1; display: block; } /* 効果テキスト追加 */
-        
-        .cost-badge {
-            position: absolute; top: 5px; left: 5px; width: 26px; height: 26px;
-            background: var(--neon-blue); clip-path: polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%);
-            display: flex; justify-content: center; align-items: center; 
-            font-weight: 900; color: #fff; z-index: 5; font-size: 1rem;
+        .card-cost {
+            position: absolute; top: -2px; left: -2px; width: 30px; height: 30px;
+            background: var(--neon-blue); clip-path: polygon(0 0, 100% 0, 0 100%);
+            z-index: 20; display: flex; padding: 2px 0 0 5px; font-weight: 900; font-size: 1.1rem;
+        }
+        .card-content {
+            position: absolute; bottom: 0; width: 100%; padding: 5px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
         }
 
-        /* --- 手札エリアの改修 --- */
-        .hand-area {
-            position: absolute; bottom: 20px; width: 100%; height: 220px;
+        /* --- 画面別スタイル --- */
+        
+        /* LOGIN */
+        #login-panel {
+            background: var(--glass); border: 1px solid var(--neon-cyan); padding: 40px;
+            text-align: center; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+        }
+
+        /* HOME */
+        .home-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px;
+            width: 100%; max-width: 600px; margin: auto;
+        }
+        .home-card {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px; text-align: center; cursor: pointer; transition: 0.3s;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
+        }
+        .home-card:hover { background: rgba(0,243,255,0.1); border-color: var(--neon-cyan); transform: translateY(-5px); }
+        .icon-lg { font-size: 3rem; margin-bottom: 10px; display: block; }
+        
+        /* HEADER HUD */
+        .hud {
+            display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;
+            background: rgba(0,0,0,0.8); border-bottom: 1px solid #333; z-index: 100;
+        }
+        .energy-bar { display: flex; align-items: center; gap: 5px; color: var(--neon-gold); font-weight: bold; }
+
+        /* BATTLE & PVP */
+        .battle-area { display: flex; flex-direction: column; height: 100%; padding-bottom: 20px; }
+        .enemy-zone { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; }
+        .player-zone { height: 260px; position: relative; }
+        
+        /* GACHA */
+        .gacha-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .capsule {
+            width: 200px; height: 200px; border-radius: 50%;
+            border: 5px solid var(--neon-cyan);
+            box-shadow: 0 0 50px var(--neon-cyan);
+            position: relative; cursor: pointer;
+            animation: pulse 2s infinite; display: flex; justify-content: center; align-items: center; font-size: 5rem;
+        }
+        @keyframes pulse { 0%{box-shadow:0 0 20px var(--neon-cyan);} 50%{box-shadow:0 0 60px var(--neon-cyan), inset 0 0 20px var(--neon-cyan);} 100%{box-shadow:0 0 20px var(--neon-cyan);} }
+
+        /* MATCHMAKING */
+        .scan-line {
+            width: 300px; height: 2px; background: var(--neon-pink);
+            position: absolute; animation: scan 2s infinite linear;
+            box-shadow: 0 0 10px var(--neon-pink);
+        }
+        @keyframes scan { 0%{top:30%; opacity:0;} 50%{opacity:1;} 100%{top:70%; opacity:0;} }
+
+        /* Hand Layout */
+        .hand-container {
             display: flex; justify-content: center; align-items: flex-end;
-            perspective: 1200px; padding-bottom: 20px;
-            pointer-events: none; /* エリア自体はクリック透過 */
+            position: absolute; bottom: 10px; width: 100%; height: 200px;
+            perspective: 1000px; overflow-x: visible;
         }
-        .hand-card-wrap {
-            width: 120px; height: 170px; margin: 0 -30px;
-            transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        .hand-card-wrapper {
+            margin-left: -40px; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-origin: center bottom;
-            pointer-events: auto; /* カードはクリック可能 */
-            position: relative;
-            cursor: pointer;
         }
-        .hand-card-wrap:hover {
+        .hand-card-wrapper:first-child { margin-left: 0; }
+        .hand-card-wrapper:hover {
             transform: translateY(-80px) scale(1.3) rotate(0deg) !important;
-            z-index: 100; margin: 0 40px;
+            z-index: 100; margin: 0 30px;
         }
-        .hand-card-wrap .card-frame { pointer-events: none; } /* JSで親をクリック判定するため */
 
-        /* --- UI共通 --- */
-        .stars { position: fixed; inset:0; pointer-events:none; z-index:0; opacity:0.5; background: radial-gradient(white 1px, transparent 1px) 0 0 / 50px 50px; }
-        .screen { position: absolute; inset:0; display: none; flex-direction: column; z-index: 10; opacity: 0; transition: opacity 0.5s; background: rgba(0,0,0,0.6); }
-        .screen.active { display: flex; opacity: 1; }
-
-        .hud-top {
-            height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); z-index: 100;
+        /* Modal */
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000;
+            display: none; justify-content: center; align-items: center;
         }
-        .cyber-btn {
-            background: rgba(0, 243, 255, 0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
-            padding: 12px 30px; font-weight: bold; letter-spacing: 2px; cursor: pointer; text-align: center;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            transition: 0.3s;
-            text-transform: uppercase;
+        .modal-content {
+            background: #111; border: 1px solid var(--neon-cyan); padding: 30px; width: 90%; max-width: 400px;
+            text-align: center; position: relative;
         }
-        .cyber-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
-
-        /* --- バトルフィールド --- */
-        .battle-stage { flex: 1; display: flex; flex-direction: column; perspective: 1200px; overflow: hidden; }
-        
-        .enemy-zone { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .player-zone { height: 300px; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
-
-        /* ボス演出 */
-        .boss-unit {
-            width: 160px; height: 160px; position: relative;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .boss-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 20px var(--neon-pink)); animation: float 3s infinite ease-in-out; }
-        @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
-
-        /* コンボ表示 */
-        .combo-text {
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            font-family: var(--font-jp); font-size: 3rem; color: var(--neon-gold);
-            text-shadow: 0 0 20px var(--neon-pink); pointer-events: none; z-index: 2000;
-            white-space: nowrap;
-        }
-        .combo-anim { animation: comboPop 1.5s forwards; }
-        @keyframes comboPop { 0%{transform:translate(-50%,-50%) scale(0.5); opacity:0;} 20%{transform:translate(-50%,-50%) scale(1.2); opacity:1;} 80%{opacity:1;} 100%{transform:translate(-50%,-100px) scale(1.5); opacity:0;} }
-
-        /* ダメージなどのフライテキスト */
-        .fly-text {
-            position: absolute; font-size: 2rem; font-weight: 900; pointer-events: none; z-index: 1000;
-            animation: flyUp 1s forwards; text-shadow: 0 0 5px #000;
-        }
-        @keyframes flyUp { 0%{transform:translate(-50%,0);} 100%{transform:translate(-50%,-80px); opacity:0;} }
-
-        /* ステータスバー */
-        .bar-container { width: 200px; height: 10px; background: #333; border: 1px solid #555; transform: skewX(-20deg); margin: 5px; position:relative; }
-        .bar-fill { height: 100%; background: var(--neon-green); width: 100%; transition: width 0.3s; box-shadow: 0 0 10px var(--neon-green); }
-        .bar-fill.enemy { background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
-        
-        /* インテント（敵の行動予告） */
-        .intent-badge {
-            position: absolute; top: -30px; background: rgba(0,0,0,0.8); border: 1px solid #fff;
-            padding: 2px 10px; border-radius: 4px; color: #fff; font-size: 0.8rem;
+        .modal-content::before {
+            content:""; position:absolute; top:-1px; left:-1px; width:10px; height:10px; border-top:2px solid var(--neon-cyan); border-left:2px solid var(--neon-cyan);
         }
 
     </style>
 </head>
 <body>
 
-    <div class="stars"></div>
-
-    <header class="hud-top">
-        <div style="font-size:1.5rem; font-weight:900; letter-spacing:2px;">COSMIC<span style="color:var(--neon-cyan)">.CHEM</span> V2</div>
-        <div style="display:flex; gap:15px; font-weight:bold;">
-            <div style="color:var(--neon-gold)">⚡ <span id="energy-val">0</span></div>
+    <header class="hud" id="hud" style="display:none;">
+        <div style="font-weight:bold;">RANK: <span id="hud-rank" style="color:var(--neon-cyan)">F</span> <span id="hud-name">GUEST</span></div>
+        <div class="energy-bar">
+            ⚡ <span id="hud-energy">100</span>
         </div>
+        <div class="cyber-btn" style="padding:5px 10px; font-size:0.8rem;" onclick="goHome()">HOME</div>
     </header>
 
     <div id="screen-login" class="screen active" style="justify-content:center; align-items:center;">
-        <h1 style="font-size:4rem; margin:0; line-height:0.9; text-align:center; text-shadow:0 0 30px var(--neon-cyan); font-family:var(--font-jp);">
-            宇宙<br><span style="color:var(--neon-cyan)">化学</span>
-        </h1>
-        <p style="color:#aaa; letter-spacing:5px; margin-bottom:60px;">TACTICAL REACTION BATTLE</p>
-        <div class="cyber-btn" onclick="startGame()">SYSTEM BOOT</div>
+        <div id="login-panel">
+            <h1 style="margin:0; font-size:2.5rem; color:#fff; text-shadow:0 0 10px var(--neon-cyan);">COSMIC<br><span style="color:var(--neon-cyan)">CHEMISTRY</span></h1>
+            <p style="letter-spacing:3px; font-size:0.8rem; color:#aaa; margin-bottom:30px;">V3.0 ONLINE SYSTEM</p>
+            <input type="text" id="username" placeholder="PILOT NAME" maxlength="8"
+                   style="background:transparent; border:none; border-bottom:2px solid #555; color:#fff; font-size:1.5rem; text-align:center; margin-bottom:20px; width:100%; font-family:var(--font-main);">
+            <div class="cyber-btn" onclick="login()">INITIALIZE</div>
+        </div>
+    </div>
+
+    <div id="screen-home" class="screen" style="justify-content:center;">
+        <h2 style="text-align:center; letter-spacing:5px;">MISSION SELECT</h2>
+        <div class="home-grid">
+            <div class="home-card" onclick="startPvE()">
+                <div class="icon-lg" style="color:var(--neon-blue)">⚔️</div>
+                <div style="font-weight:bold;">STORY OPS</div>
+                <div style="font-size:0.7rem; color:#aaa;">CPU BATTLE<br>COST: 10⚡</div>
+            </div>
+            <div class="home-card" onclick="startPvP()">
+                <div class="icon-lg" style="color:var(--neon-pink)">🌐</div>
+                <div style="font-weight:bold;">ONLINE PVP</div>
+                <div style="font-size:0.7rem; color:#aaa;">RANKED MATCH<br>COST: 20⚡</div>
+            </div>
+            <div class="home-card" onclick="startGacha()">
+                <div class="icon-lg" style="color:var(--neon-gold)">💎</div>
+                <div style="font-weight:bold;">LABORATORY</div>
+                <div style="font-size:0.7rem; color:#aaa;">QUIZ GACHA<br>COST: 50⚡</div>
+            </div>
+            <div class="home-card" onclick="showDeck()">
+                <div class="icon-lg" style="color:var(--neon-purple)">📂</div>
+                <div style="font-weight:bold;">DATABASE</div>
+                <div style="font-size:0.7rem; color:#aaa;">VIEW CARDS</div>
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:20px;">
+            <div class="cyber-btn" onclick="addEnergy()">RECHARGE ENERGY (+50)</div>
+        </div>
+    </div>
+
+    <div id="screen-matchmaking" class="screen" style="justify-content:center; align-items:center;">
+        <div style="font-size:2rem; font-weight:bold; color:var(--neon-pink); text-shadow:0 0 10px var(--neon-pink);">SEARCHING RIVAL...</div>
+        <div style="width:300px; height:100px; border:1px solid rgba(255,0,85,0.3); position:relative; margin-top:20px; background:rgba(0,0,0,0.5);">
+            <div class="scan-line"></div>
+            <div style="position:absolute; bottom:5px; right:5px; font-size:0.8rem; color:var(--neon-pink);">CONNECTING TO SECTOR 9...</div>
+        </div>
     </div>
 
     <div id="screen-battle" class="screen">
-        <div class="battle-stage">
-            
+        <div class="battle-area">
             <div class="enemy-zone">
-                <div class="boss-unit" id="enemy-unit">
-                    <div class="intent-badge" id="enemy-intent">⚠ CHARGING</div>
-                    <img src="https://placehold.co/200x200/220000/ff0055?text=DARK+MATTER&font=roboto" class="boss-img" id="enemy-img">
-                </div>
-                <div style="margin-top:10px;">
-                    <div style="text-align:center; font-weight:bold;" id="enemy-name">ANOMALY: UNKNOWN</div>
-                    <div class="bar-container"><div id="enemy-hp-bar" class="bar-fill enemy"></div></div>
-                    <div style="text-align:right; font-size:0.8rem;">HP: <span id="enemy-hp-text">500</span></div>
+                <div style="text-align:center;">
+                    <div id="enemy-name-disp" style="color:var(--neon-pink); font-weight:bold; margin-bottom:5px;">UNKNOWN</div>
+                    <img id="enemy-img" src="https://placehold.co/150x150/220000/ff0055?text=BOSS&font=roboto" style="border:2px solid var(--neon-pink); border-radius:50%; box-shadow:0 0 20px var(--neon-pink);">
+                    <div style="margin-top:5px; width:200px; height:10px; background:#333; margin:10px auto;">
+                        <div id="enemy-hp-bar" style="width:100%; height:100%; background:var(--neon-pink); transition:0.3s;"></div>
+                    </div>
+                    <div>HP: <span id="enemy-hp-text">500</span></div>
                 </div>
             </div>
 
-            <div id="combo-display" class="combo-text">REACTION!</div>
+            <div style="height:50px; display:flex; justify-content:center; align-items:center;">
+                <div id="combo-msg" style="font-size:2rem; font-weight:900; color:var(--neon-gold); text-shadow:0 0 10px var(--neon-gold); opacity:0;"></div>
+            </div>
 
             <div class="player-zone">
-                <div style="display:flex; justify-content:space-between; padding:10px 20px; align-items:flex-end; z-index:20;">
+                <div style="padding:10px; display:flex; justify-content:space-between; align-items:flex-end;">
                     <div>
-                        <div style="font-size:0.8rem; color:#aaa;">SHIELD STATUS</div>
-                        <div class="bar-container"><div id="player-hp-bar" class="bar-fill"></div></div>
-                        <div style="font-size:0.8rem;">HP: <span id="player-hp-text">200</span></div>
+                        <div style="font-size:0.8rem; color:#aaa;">SHIELD</div>
+                        <div style="width:150px; height:10px; background:#333;">
+                            <div id="player-hp-bar" style="width:100%; height:100%; background:var(--neon-blue); transition:0.3s;"></div>
+                        </div>
+                        <span id="player-hp-text">200</span>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:0.8rem; color:#aaa;">ELECTRON VALENCE (MANA)</div>
-                        <div style="display:flex; gap:5px;" id="mana-box"></div>
+                        <div style="font-size:0.8rem; color:#aaa;">MANA (e⁻)</div>
+                        <div id="mana-box" style="display:flex; gap:3px;"></div>
                     </div>
                 </div>
-
-                <div style="position:absolute; top:-50px; left:50%; transform:translateX(-50%); width:100px; height:140px; border:2px dashed rgba(0,243,255,0.3); border-radius:10px; display:flex; justify-content:center; align-items:center; z-index:10;" id="field-slot">
-                    <span style="font-size:0.7rem; color:#666;">FIELD</span>
+                <div id="field-slot" style="position:absolute; top:-60px; left:50%; transform:translateX(-50%); width:100px; height:140px; border:2px dashed rgba(0,243,255,0.2); border-radius:8px; display:flex; justify-content:center; align-items:center; opacity:0.5; pointer-events:none;">
+                    <span style="font-size:0.7rem;">REACTION SITE</span>
                 </div>
-
-                <div class="hand-area" id="hand-container"></div>
-                
-                <button id="turn-btn" class="cyber-btn" style="position:absolute; bottom:250px; right:20px; z-index:200; display:none;" onclick="endTurn()">END TURN</button>
+                <div class="hand-container" id="hand-container"></div>
             </div>
         </div>
     </div>
 
-    <div id="quiz-modal" class="screen" style="background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:1000;">
-        <div style="background:#0a0f19; border:2px solid var(--neon-cyan); padding:30px; width:90%; max-width:500px; position:relative;">
-            <h2 style="color:var(--neon-cyan); margin-top:0;">ELECTRON RECHARGE</h2>
-            <p id="quiz-q" style="font-size:1.2rem; font-weight:bold; min-height:60px;">Question...</p>
-            <div id="quiz-opts" style="display:flex; flex-direction:column; gap:10px;"></div>
+    <div id="screen-gacha" class="screen">
+        <div class="gacha-container">
+            <h2 style="color:var(--neon-cyan);">MATTER SYNTHESIS</h2>
+            <div class="capsule" onclick="tryOpenGacha()">?</div>
+            <p style="margin-top:20px; color:#aaa;">TAP TO SYNTHESIZE (QUIZ REQUIRED)</p>
+        </div>
+    </div>
+
+    <div id="modal-quiz" class="modal">
+        <div class="modal-content">
+            <h3 style="color:var(--neon-gold);">SECURITY CHECK</h3>
+            <p id="quiz-text" style="font-size:1.1rem; margin-bottom:20px;">Question here</p>
+            <div id="quiz-options" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+    </div>
+
+    <div id="modal-reward" class="modal">
+        <div class="modal-content" style="background:radial-gradient(circle, #222, #000);">
+            <h2 style="color:var(--neon-gold); text-shadow:0 0 20px var(--neon-gold);">SYNTHESIS COMPLETE!</h2>
+            <div id="reward-card-view" style="display:flex; justify-content:center; margin:30px 0;"></div>
+            <div class="cyber-btn gold" onclick="closeReward()">ACCEPT</div>
         </div>
     </div>
 
     <script>
-        // --- 1. カードデータ (化学属性を追加) ---
-        // type: ATK(攻撃), DEF(防御), SUP(補助)
-        // element: 化学反応判定用 (H, O, Cl, Na, etc.)
-        const CARDS_DB = [
-            {id:1, name:"水素 (H₂)", cost:1, val:15, type:"ATK", element:"H", rarity:1, desc:"最も軽い元素。可燃性。", img:"H"},
-            {id:2, name:"酸素 (O₂)", cost:1, val:10, type:"SUP", element:"O", rarity:1, desc:"燃焼を助ける。反応性が高い。", img:"O"},
-            {id:3, name:"ナトリウム (Na)", cost:2, val:25, type:"ATK", element:"Na", rarity:2, desc:"水と激しく反応する金属。", img:"Na"},
-            {id:4, name:"塩素 (Cl₂)", cost:2, val:30, type:"ATK", element:"Cl", rarity:2, desc:"強い毒性を持つ気体。", img:"Cl"},
-            {id:5, name:"水 (H₂O)", cost:2, val:20, type:"HEAL", element:"H2O", rarity:1, desc:"生命の源。中性。", img:"H2O"},
-            {id:6, name:"水酸化Na (NaOH)", cost:3, val:40, type:"DEF", element:"Base", rarity:2, desc:"強塩基。タンパク質を溶かす。", img:"NaOH"},
-            {id:7, name:"塩酸 (HCl)", cost:3, val:45, type:"ATK", element:"Acid", rarity:3, desc:"強酸。金属を溶かす。", img:"HCl"},
-            {id:8, name:"希ガス (He)", cost:2, val:50, type:"DEF", element:"Noble", rarity:3, desc:"反応しない。完全防御。", img:"He"}
+        // --- DATA & CONFIG ---
+        const CARDS = [
+            {id:1, name:"Hydrogen", jp:"水素 (H₂)", cost:1, val:20, type:"ATK", elm:"H", rarity:1, img:"H"},
+            {id:2, name:"Oxygen", jp:"酸素 (O₂)", cost:1, val:10, type:"SUP", elm:"O", rarity:1, img:"O"},
+            {id:3, name:"Sodium", jp:"ナトリウム (Na)", cost:2, val:30, type:"ATK", elm:"Na", rarity:2, img:"Na"},
+            {id:4, name:"Chlorine", jp:"塩素 (Cl₂)", cost:2, val:35, type:"ATK", elm:"Cl", rarity:2, img:"Cl"},
+            {id:5, name:"Water", jp:"水 (H₂O)", cost:2, val:30, type:"HEAL", elm:"H2O", rarity:1, img:"H2O"},
+            {id:6, name:"Hydrochloric Acid", jp:"塩酸 (HCl)", cost:3, val:50, type:"ATK", elm:"Acid", rarity:3, img:"HCl"},
+            {id:7, name:"Sodium Hydroxide", jp:"水酸化Na (NaOH)", cost:3, val:40, type:"DEF", elm:"Base", rarity:2, img:"NaOH"},
+            {id:8, name:"Neon", jp:"ネオン (Ne)", cost:2, val:60, type:"DEF", elm:"Noble", rarity:3, img:"Ne"}
         ];
 
-        const QUIZ_DB = [
-            {q:"原子核の周りを回っているマイナスの電気を帯びた粒子は？", a:0, o:["電子","陽子","中性子"]},
-            {q:"pHが7より小さい水溶液の性質は？", a:1, o:["アルカリ性","酸性","中性"]},
-            {q:"炎色反応で「赤色」を示す金属元素は？", a:2, o:["Cu (銅)","Na (ナトリウム)","Li (リチウム)"]},
-            {q:"原子番号1番の元素は？", a:0, o:["水素","ヘリウム","炭素"]}
+        const QUIZZES = [
+            {q:"原子番号1番の元素は？", a:0, o:["水素","ヘリウム","リチウム"]},
+            {q:"「王水」は何と何の混合液？", a:0, o:["濃塩酸と濃硝酸","濃硫酸と濃塩酸","水とエタノール"]},
+            {q:"炎色反応で「黄色」を示すのは？", a:1, o:["銅","ナトリウム","カリウム"]},
+            {q:"pHが7より小さい液性は？", a:2, o:["アルカリ性","中性","酸性"]},
+            {q:"ドライアイスは何が固まったもの？", a:0, o:["二酸化炭素","水","酸素"]}
         ];
 
-        // --- 2. ゲーム状態管理 ---
-        let gameState = {
-            playerHp: 200, playerMaxHp: 200,
-            enemyHp: 500, enemyMaxHp: 500,
-            mana: 0, maxMana: 5,
-            hand: [],
-            fieldCard: null, // 場に出ている直前のカード（コンボ用）
-            turn: 0,
-            enemyIntent: "attack"
+        let user = {
+            name: "GUEST",
+            rank: "F",
+            energy: 100,
+            collection: [1, 1, 2, 2, 5], // 初期デッキ(ID)
+            wins: 0
         };
 
-        // --- 3. ゲームループ & UI ---
-        function startGame() {
-            document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-            document.getElementById('screen-battle').classList.add('active');
-            
-            // 初期デッキ (ランダム5枚)
-            for(let i=0; i<5; i++) drawCard();
-            
-            updateUI();
-            startTurn();
+        let battleState = {
+            hp: 0, maxHp:0, eHp:0, eMaxHp:0, mana:0, maxMana:5,
+            hand:[], field:null, isPvP:false, turn:0
+        };
+
+        // --- CORE FUNCTIONS ---
+        
+        window.onload = () => {
+            loadUser();
+            if(user.name !== "GUEST") {
+                document.getElementById('username').value = user.name;
+                updateHud();
+            }
+        };
+
+        function loadUser() {
+            const saved = localStorage.getItem('cosmic_user_v3');
+            if(saved) user = JSON.parse(saved);
+        }
+        function saveUser() {
+            localStorage.setItem('cosmic_user_v3', JSON.stringify(user));
+            updateHud();
         }
 
-        function startTurn() {
-            // ターン開始時にクイズでマナ回復
-            showQuiz();
+        function updateHud() {
+            document.getElementById('hud-name').innerText = user.name;
+            document.getElementById('hud-rank').innerText = user.rank;
+            document.getElementById('hud-energy').innerText = user.energy;
         }
 
-        function showQuiz() {
-            const q = QUIZ_DB[Math.floor(Math.random()*QUIZ_DB.length)];
-            document.getElementById('quiz-q').innerText = q.q;
-            const opts = document.getElementById('quiz-opts'); opts.innerHTML = "";
+        function login() {
+            const n = document.getElementById('username').value || "PILOT";
+            user.name = n;
+            saveUser();
+            document.getElementById('hud').style.display = 'flex';
+            switchScreen('home');
+        }
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-' + id).classList.add('active');
+        }
+
+        function goHome() { switchScreen('home'); }
+
+        function addEnergy() {
+            user.energy += 50;
+            saveUser();
+            alert("ENERGY RECHARGED: +50");
+        }
+
+        // --- CARD RENDER ENGINE (3D & HOLO) ---
+        function createCardHTML(cardData, onClickFnStr) {
+            // 色判定
+            let color = "var(--neon-cyan)";
+            if(cardData.type==="ATK") color="var(--neon-pink)";
+            if(cardData.type==="HEAL") color="var(--neon-green)";
+            if(cardData.type==="DEF") color="var(--neon-blue)";
+            
+            // 画像
+            const imgUrl = `https://placehold.co/120x100/111/fff?text=${cardData.img}&font=roboto`;
+
+            return `
+            <div class="card-scene" onmousemove="cardTilt(event, this)" onmouseleave="cardReset(this)" onclick="${onClickFnStr}">
+                <div class="card-obj rarity-${cardData.rarity}">
+                    <div class="card-face" style="border-color:${color}">
+                        <div class="card-cost" style="background:${color}">${cardData.cost}</div>
+                        <div class="card-art">
+                            <img src="${imgUrl}">
+                        </div>
+                        <div class="holo-layer"></div>
+                        <div class="card-content">
+                            <div style="font-size:0.7rem; color:${color}; font-weight:bold;">${cardData.jp}</div>
+                            <div style="font-size:1.2rem; font-weight:900;">${cardData.val} <span style="font-size:0.6rem;">${cardData.type}</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // 3D Tilt Logic
+        window.cardTilt = function(e, el) {
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const cx = rect.width/2; 
+            const cy = rect.height/2;
+            const dx = (x - cx) / cx; 
+            const dy = (y - cy) / cy;
+
+            const obj = el.querySelector('.card-obj');
+            const holo = el.querySelector('.holo-layer');
+            
+            // 傾き
+            obj.style.transform = `rotateY(${dx * 20}deg) rotateX(${dy * -20}deg) scale(1.1)`;
+            
+            // ホログラム位置移動
+            holo.style.backgroundPosition = `${50 + (dx * 50)}% ${50 + (dy * 50)}%`;
+            holo.style.opacity = 0.8 + (Math.abs(dx)*0.2);
+        };
+        window.cardReset = function(el) {
+            const obj = el.querySelector('.card-obj');
+            const holo = el.querySelector('.holo-layer');
+            obj.style.transform = `rotateY(0) rotateX(0) scale(1)`;
+            holo.style.opacity = 0.4;
+        };
+
+        // --- GACHA SYSTEM ---
+        let pendingGacha = false;
+        function startGacha() {
+            switchScreen('gacha');
+        }
+        function tryOpenGacha() {
+            if(user.energy < 50) return alert("NOT ENOUGH ENERGY (Need 50)");
+            pendingGacha = true;
+            showQuiz(openGachaSuccess);
+        }
+        function openGachaSuccess() {
+            user.energy -= 50;
+            // 抽選
+            const r = Math.random();
+            let tier = 1; 
+            if(r < 0.1) tier = 3; else if(r < 0.4) tier = 2;
+            
+            const pool = CARDS.filter(c => c.rarity === tier);
+            const hit = pool[Math.floor(Math.random() * pool.length)];
+            
+            user.collection.push(hit.id);
+            saveUser();
+
+            // 演出
+            const view = document.getElementById('reward-card-view');
+            view.innerHTML = createCardHTML(hit, "");
+            view.firstElementChild.style.transform = "scale(1.5)";
+            
+            document.getElementById('modal-reward').style.display = 'flex';
+        }
+        function closeReward() {
+            document.getElementById('modal-reward').style.display = 'none';
+        }
+
+        // --- QUIZ LOGIC ---
+        function showQuiz(callback) {
+            const q = QUIZZES[Math.floor(Math.random()*QUIZZES.length)];
+            document.getElementById('quiz-text').innerText = q.q;
+            const opts = document.getElementById('quiz-options');
+            opts.innerHTML = "";
             
             q.o.forEach((txt, idx) => {
-                const b = document.createElement('div');
-                b.className = "cyber-btn";
-                b.innerText = txt;
-                b.onclick = () => {
-                    document.getElementById('quiz-modal').classList.remove('active');
+                const btn = document.createElement('div');
+                btn.className = "cyber-btn";
+                btn.innerText = txt;
+                btn.onclick = () => {
                     if(idx === q.a) {
-                        gameState.mana = Math.min(gameState.maxMana, gameState.mana + 3);
-                        showFlyText("PERFECT! +3e⁻", "#00f3ff", window.innerWidth/2, window.innerHeight/2);
+                        alert("CORRECT! ACCESS GRANTED.");
+                        document.getElementById('modal-quiz').style.display = 'none';
+                        callback();
                     } else {
-                        gameState.mana = Math.min(gameState.maxMana, gameState.mana + 1);
-                        showFlyText("STABLE... +1e⁻", "#aaa", window.innerWidth/2, window.innerHeight/2);
+                        alert("ACCESS DENIED. TRY AGAIN.");
+                        document.getElementById('modal-quiz').style.display = 'none';
                     }
-                    updateUI();
-                    
-                    // 敵の行動決定
-                    decideEnemyIntent();
                 };
-                opts.appendChild(b);
+                opts.appendChild(btn);
             });
-            document.getElementById('quiz-modal').classList.add('active');
+            document.getElementById('modal-quiz').style.display = 'flex';
+        }
+
+        // --- BATTLE & PVP SYSTEM ---
+        function startPvE() {
+            if(user.energy < 10) return alert("Low Energy");
+            user.energy -= 10; saveUser();
+            initBattle(false);
+        }
+        function startPvP() {
+            if(user.energy < 20) return alert("Low Energy");
+            user.energy -= 20; saveUser();
+            switchScreen('matchmaking');
+            // マッチング演出
+            setTimeout(() => {
+                const rivals = ["KAZUYA", "NEO_CHEMIST", "ATOM_BOY", "MARIE_C"];
+                const name = rivals[Math.floor(Math.random()*rivals.length)];
+                initBattle(true, name);
+            }, 3000);
+        }
+
+        function initBattle(isPvP, rivalName) {
+            battleState.isPvP = isPvP;
+            battleState.hp = 200; battleState.maxHp = 200;
+            battleState.eHp = isPvP ? 300 : 500; battleState.eMaxHp = battleState.eHp;
+            battleState.mana = 0;
+            battleState.hand = [];
+            battleState.field = null;
+
+            // 名前設定
+            document.getElementById('enemy-name-disp').innerText = isPvP ? `RIVAL: ${rivalName}` : "ANOMALY: DARK MATTER";
+            
+            switchScreen('battle');
+            
+            // デッキから手札5枚
+            for(let i=0; i<5; i++) drawCard();
+            
+            updateBattleUI();
+            battleTurnStart();
         }
 
         function drawCard() {
-            const c = CARDS_DB[Math.floor(Math.random()*CARDS_DB.length)];
-            gameState.hand.push({...c, uid: Math.random()}); // ユニークID付与
+            // 所持カードからランダムに
+            const id = user.collection[Math.floor(Math.random()*user.collection.length)];
+            const base = CARDS.find(c => c.id === id);
+            battleState.hand.push({...base, uid:Math.random()}); // Unique copy
         }
 
-        function updateUI() {
+        function battleTurnStart() {
+            // クイズでマナチャージ
+            showQuiz(() => {
+                battleState.mana = Math.min(battleState.maxMana, battleState.mana + 3);
+                updateBattleUI();
+                // PvPなら相手も行動するフリをする（ここでは簡易化のためプレイヤー操作のみ）
+            });
+        }
+
+        function updateBattleUI() {
             // HP Bars
-            const pPct = (gameState.playerHp/gameState.playerMaxHp)*100;
-            const ePct = (gameState.enemyHp/gameState.enemyMaxHp)*100;
-            document.getElementById('player-hp-bar').style.width = pPct+"%";
-            document.getElementById('player-hp-text').innerText = gameState.playerHp;
-            document.getElementById('enemy-hp-bar').style.width = ePct+"%";
-            document.getElementById('enemy-hp-text').innerText = gameState.enemyHp;
+            document.getElementById('player-hp-bar').style.width = (battleState.hp/battleState.maxHp)*100 + "%";
+            document.getElementById('player-hp-text').innerText = battleState.hp;
+            document.getElementById('enemy-hp-bar').style.width = (battleState.eHp/battleState.eMaxHp)*100 + "%";
+            document.getElementById('enemy-hp-text').innerText = battleState.eHp;
 
             // Mana
-            const mBox = document.getElementById('mana-box'); mBox.innerHTML="";
-            for(let i=0; i<gameState.maxMana; i++){
+            const mBox = document.getElementById('mana-box'); mBox.innerHTML = "";
+            for(let i=0; i<battleState.maxMana; i++){
                 const d = document.createElement('div');
-                d.style.width="15px"; d.style.height="20px"; 
-                d.style.background = (i < gameState.mana) ? "var(--neon-cyan)" : "#333";
-                d.style.border = "1px solid var(--neon-cyan)";
+                d.style.width="15px"; d.style.height="20px"; d.style.border="1px solid var(--neon-cyan)";
+                d.style.background = (i < battleState.mana) ? "var(--neon-cyan)" : "#111";
                 d.style.transform = "skewX(-20deg)";
-                if(i < gameState.mana) d.style.boxShadow = "0 0 10px var(--neon-cyan)";
                 mBox.appendChild(d);
             }
 
             // Hand
-            renderHand();
-
-            // Field
-            const slot = document.getElementById('field-slot');
-            if(gameState.fieldCard) {
-                // 簡易表示
-                slot.innerHTML = `<div style="font-weight:bold; color:var(--neon-cyan);">${gameState.fieldCard.name}</div>`;
-                slot.style.borderColor = "var(--neon-cyan)";
-                slot.style.boxShadow = "0 0 20px rgba(0,243,255,0.2)";
-            } else {
-                slot.innerHTML = `<span style="font-size:0.7rem; color:#666;">FIELD</span>`;
-                slot.style.borderColor = "#444";
-                slot.style.boxShadow = "none";
-            }
-        }
-
-        // --- 4. 3Dカード描画システム ---
-        function renderHand() {
-            const container = document.getElementById('hand-container');
-            container.innerHTML = "";
-            
-            const count = gameState.hand.length;
-            
-            gameState.hand.forEach((card, i) => {
+            const hCon = document.getElementById('hand-container'); hCon.innerHTML = "";
+            battleState.hand.forEach((c, idx) => {
                 const wrap = document.createElement('div');
-                wrap.className = "hand-card-wrap";
+                wrap.className = "hand-card-wrapper";
+                // 3Dスタイル
+                wrap.innerHTML = createCardHTML(c, `playCard(${idx})`);
                 
-                // 扇状に配置
-                const rot = (i - (count-1)/2) * 5; 
-                const y = Math.abs(i - (count-1)/2) * 10;
-                wrap.style.transform = `rotate(${rot}deg) translateY(${y}px)`;
-                
-                // HTML生成
-                let color = "var(--neon-cyan)";
-                if(card.type==="ATK") color="var(--neon-pink)";
-                if(card.type==="DEF") color="var(--neon-green)";
-                if(card.type==="HEAL") color="var(--neon-gold)";
+                // 回転配置
+                const rot = (idx - (battleState.hand.length-1)/2) * 5;
+                const ty = Math.abs(idx - (battleState.hand.length-1)/2) * 10;
+                wrap.style.transform = `rotate(${rot}deg) translateY(${ty}px)`;
 
-                const imgUrl = `https://placehold.co/120x100/000/FFF?text=${card.img}&font=roboto`;
-
-                wrap.innerHTML = `
-                    <div class="card-scene">
-                        <div class="card-frame rarity-${card.rarity}" style="border-color:${color}">
-                            <div class="card-shine"></div>
-                            <div class="cost-badge" style="background:${color}">${card.cost}</div>
-                            <div class="card-art">
-                                <img src="${imgUrl}" alt="${card.name}">
-                            </div>
-                            <div class="card-info">
-                                <div class="card-name" style="color:${color}">${card.name}</div>
-                                <div class="card-effect">${card.type} | POW ${card.val}</div>
-                                <div style="font-size:0.55rem; color:#ccc; margin-top:2px;">${card.desc}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // マナ不足なら暗くする
-                if(card.cost > gameState.mana) {
-                    wrap.style.filter = "grayscale(1) brightness(0.4)";
+                if(c.cost > battleState.mana) {
+                    wrap.style.filter = "grayscale(1) brightness(0.5)";
                     wrap.style.pointerEvents = "none";
-                } else {
-                    wrap.onclick = () => playCard(i);
-                    // 3D Tilt Event
-                    add3DTiltEffect(wrap);
                 }
-
-                container.appendChild(wrap);
+                hCon.appendChild(wrap);
             });
         }
 
-        // カードのキラキラ＆傾き処理 (Kira-Kira Logic)
-        function add3DTiltEffect(el) {
-            const frame = el.querySelector('.card-frame');
-            const shine = el.querySelector('.card-shine');
-            
-            el.addEventListener('mousemove', (e) => {
-                const rect = el.getBoundingClientRect();
-                const x = e.clientX - rect.left; // 要素内のX座標
-                const y = e.clientY - rect.top;  // 要素内のY座標
-                
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                
-                const rotateX = ((y - centerY) / centerY) * -15; // 縦の傾き
-                const rotateY = ((x - centerX) / centerX) * 15;  // 横の傾き
-                
-                frame.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.1)`;
-                
-                // 光の移動
-                shine.style.backgroundPosition = `${100 - (x / rect.width * 100)}% ${100 - (y / rect.height * 100)}%`;
-                shine.style.opacity = "1";
-            });
-            
-            el.addEventListener('mouseleave', () => {
-                frame.style.transform = `rotateX(0) rotateY(0) scale(1)`;
-                shine.style.opacity = "0";
-            });
-        }
+        function playCard(idx) {
+            const card = battleState.hand[idx];
+            battleState.mana -= card.cost;
+            battleState.hand.splice(idx, 1);
 
-        // --- 5. バトルロジック & 化学反応システム ---
-        function playCard(index) {
-            const card = gameState.hand[index];
-            gameState.mana -= card.cost;
-            gameState.hand.splice(index, 1);
+            // 化学反応チェック
+            let dmg = card.val;
+            let msg = "";
             
-            // 効果発動
-            let power = card.val;
-            let reactionMsg = "";
-            let isCombo = false;
-
-            // ★ CHEMICAL REACTION LOGIC ★
-            const field = gameState.fieldCard;
-            
-            if(field) {
-                // 1. 爆発反応 (H2 + O2)
-                if((card.element==="H" && field.element==="O") || (card.element==="O" && field.element==="H")) {
-                    power *= 2.5; reactionMsg = "EXPLOSION (2.5x)!"; isCombo=true;
+            if(battleState.field) {
+                const f = battleState.field;
+                if((card.elm==="H" && f.elm==="O") || (card.elm==="O" && f.elm==="H")) {
+                    dmg *= 2; msg = "EXPLOSION!!";
                 }
-                // 2. 劇物生成 (Na + Cl -> NaCl 食塩だがこのゲームでは衝撃波扱い)
-                else if((card.element==="Na" && field.element==="Cl") || (card.element==="Cl" && field.element==="Na")) {
-                    power *= 2.0; reactionMsg = "IONIC BOND (2.0x)!"; isCombo=true;
-                }
-                // 3. 中和 (Acid + Base)
-                else if((card.element==="Acid" && field.element==="Base") || (card.element==="Base" && field.element==="Acid")) {
-                    reactionMsg = "NEUTRALIZATION (HEAL)!"; isCombo=true;
-                    gameState.playerHp = Math.min(gameState.playerMaxHp, gameState.playerHp + 50);
-                    showFlyText("+50 HP", "#00ff9d", window.innerWidth/4, window.innerHeight/2);
+                else if((card.elm==="Acid" && f.elm==="Base") || (card.elm==="Base" && f.elm==="Acid")) {
+                    msg = "NEUTRALIZATION (HEAL)";
+                    battleState.hp += 50;
                 }
             }
 
-            // コンボ演出
-            if(isCombo) {
-                const cmb = document.getElementById('combo-display');
-                cmb.innerText = reactionMsg;
-                cmb.classList.remove('combo-anim');
-                void cmb.offsetWidth; // リフロー
-                cmb.classList.add('combo-anim');
+            // 演出
+            if(msg) {
+                const cm = document.getElementById('combo-msg');
+                cm.innerText = msg;
+                cm.style.opacity = 1;
+                setTimeout(()=>cm.style.opacity=0, 1500);
             }
 
-            // メイン処理
+            // 効果適用
             if(card.type === "ATK") {
-                // ダメージ計算
-                applyDamageToEnemy(power);
+                battleState.eHp = Math.max(0, battleState.eHp - dmg);
+                // 敵揺らし
+                const eImg = document.getElementById('enemy-img');
+                eImg.style.transform = "translateX(10px)";
+                setTimeout(()=>eImg.style.transform="translateX(0)", 100);
             } else if(card.type === "HEAL") {
-                gameState.playerHp = Math.min(gameState.playerMaxHp, gameState.playerHp + power);
-                showFlyText(`+${power}`, "#00ff9d", window.innerWidth/4, window.innerHeight/2);
+                battleState.hp = Math.min(battleState.maxHp, battleState.hp + dmg);
             } else if(card.type === "DEF") {
-                gameState.playerHp += power/2; // 簡易シールド
-                showFlyText(`SHIELD +${power/2}`, "#0066ff", window.innerWidth/4, window.innerHeight/2);
+                battleState.hp += 20; // 簡易シールド
             }
 
-            // 場に残す
-            gameState.fieldCard = card;
+            battleState.field = card;
             
-            drawCard(); // 1枚引く
-            updateUI();
-            
-            if(gameState.enemyHp <= 0) {
-                setTimeout(() => alert("ENEMY NEUTRALIZED! YOU WIN!"), 500);
-            } else {
-                // ターン終了判定（マナがないなら自動で敵ターンへ）
-                if(gameState.mana <= 0) setTimeout(enemyTurn, 1000);
-            }
-        }
+            // カード補充
+            drawCard();
+            updateBattleUI();
 
-        function applyDamageToEnemy(val) {
-            val = Math.floor(val);
-            gameState.enemyHp = Math.max(0, gameState.enemyHp - val);
-            showFlyText(val, "var(--neon-pink)", window.innerWidth*0.75, window.innerHeight*0.3);
-            
-            const eUnit = document.getElementById('enemy-unit');
-            eUnit.style.animation = "shake 0.4s";
-            setTimeout(()=>eUnit.style.animation = "float 3s infinite ease-in-out", 400);
-        }
-
-        // --- 6. 敵AI (V2.0) ---
-        function decideEnemyIntent() {
-            // ランダムで行動を変える
-            const r = Math.random();
-            const badge = document.getElementById('enemy-intent');
-            
-            if(r < 0.6) {
-                gameState.enemyIntent = "attack";
-                badge.innerText = "⚠ ATTACK";
-                badge.style.borderColor = "var(--neon-pink)";
-            } else if(r < 0.8) {
-                gameState.enemyIntent = "charge";
-                badge.innerText = "⚡ GATHERING ENERGY";
-                badge.style.borderColor = "var(--neon-gold)";
-            } else {
-                gameState.enemyIntent = "defend";
-                badge.innerText = "🛡 DEFENSE STANCE";
-                badge.style.borderColor = "var(--neon-blue)";
+            // 勝利判定
+            if(battleState.eHp <= 0) {
+                setTimeout(()=>{
+                    alert("VICTORY! RANK UP!");
+                    user.wins++;
+                    if(user.wins > 3) user.rank = "C";
+                    saveUser();
+                    goHome();
+                }, 500);
+                return;
             }
+
+            // 敵ターン
+            setTimeout(enemyTurn, 1000);
         }
 
         function enemyTurn() {
-            showFlyText("ENEMY TURN", "#fff", window.innerWidth/2, window.innerHeight/2);
+            // 簡易敵AI
+            const dmg = battleState.isPvP ? Math.floor(Math.random()*40)+10 : 20;
+            battleState.hp = Math.max(0, battleState.hp - dmg);
+            updateBattleUI();
             
-            setTimeout(() => {
-                let dmg = 0;
-                
-                if(gameState.enemyIntent === "attack") {
-                    dmg = 20 + Math.floor(Math.random()*20);
-                    // プレイヤーが希ガス(Noble)をフィールドに出しているとダメージ無効化などのロジックも可
-                    if(gameState.fieldCard && gameState.fieldCard.element === "Noble") {
-                        dmg = 0;
-                        showFlyText("BLOCKED (NOBLE GAS)", "#00ff9d", window.innerWidth/4, window.innerHeight/2);
-                    }
-                } else if(gameState.enemyIntent === "charge") {
-                    showFlyText("ENERGY SURGING...", "var(--neon-gold)", window.innerWidth*0.75, window.innerHeight*0.3);
-                    // 次のターン痛くなる（簡易実装として回復させる）
-                    gameState.enemyHp = Math.min(gameState.enemyMaxHp, gameState.enemyHp + 30);
-                } else {
-                    // 防御
-                    gameState.enemyHp += 50;
-                    showFlyText("ARMOR UP", "var(--neon-blue)", window.innerWidth*0.75, window.innerHeight*0.3);
-                }
-
-                if(dmg > 0) {
-                    gameState.playerHp = Math.max(0, gameState.playerHp - dmg);
-                    showFlyText(`-${dmg}`, "var(--neon-pink)", window.innerWidth/4, window.innerHeight/2);
-                    document.body.style.animation = "shake 0.2s";
-                    setTimeout(()=>document.body.style.animation="", 200);
-                }
-
-                updateUI();
-                gameState.fieldCard = null; // 場をリセット
-
-                if(gameState.playerHp <= 0) {
-                    alert("CRITICAL SYSTEM FAILURE... DEFEAT");
-                    location.reload();
-                } else {
-                    startTurn();
-                }
-            }, 1500);
+            if(battleState.hp <= 0) {
+                setTimeout(()=>{alert("DEFEAT..."); goHome();}, 500);
+            } else {
+                battleTurnStart();
+            }
         }
 
-        // --- ユーティリティ ---
-        function showFlyText(text, color, x, y) {
-            const el = document.createElement('div');
-            el.className = 'fly-text';
-            el.innerText = text;
-            el.style.color = color;
-            el.style.left = x + "px";
-            el.style.top = y + "px";
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
+        function showDeck() {
+            alert("Current Collection: " + user.collection.length + " Cards\n(Deck Editor coming in V4.0)");
         }
-
-        // シェイクアニメーション定義
-        const styleSheet = document.createElement("style");
-        styleSheet.innerText = `
-            @keyframes shake { 0%{transform:translateX(0);} 25%{transform:translateX(-10px);} 75%{transform:translateX(10px);} 100%{transform:translateX(0);} }
-        `;
-        document.head.appendChild(styleSheet);
 
     </script>
 </body>
