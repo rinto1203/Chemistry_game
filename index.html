@@ -3,721 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSMIC CHEMISTRY: OVERDRIVE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --c-cyan: #00f3ff;
-            --c-blue: #0066ff;
-            --c-pink: #ff0055;
-            --c-gold: #ffd700;
-            --c-purple: #bc13fe;
-            --c-bg: #050b14;
-            --c-glass: rgba(16, 24, 40, 0.75);
-            --c-glass-border: rgba(255, 255, 255, 0.15);
-            --font-eng: 'Rajdhani', sans-serif;
-            --font-jp: 'Noto Sans JP', sans-serif;
-        }
-
-        /* --- Global Reset & Base --- */
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; outline: none; }
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--c-bg);
-            color: #fff;
-            height: 100dvh; width: 100vw;
-            overflow: hidden;
-            font-family: var(--font-eng);
-        }
-
-        /* --- Canvas Background (Particles) --- */
-        #bg-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
-            pointer-events: none;
-        }
-
-        /* --- UI Layers --- */
-        .layer { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; }
-        .interactive { pointer-events: auto; }
-
-        /* --- Components: Buttons --- */
-        .btn-primary {
-            background: linear-gradient(135deg, rgba(0,243,255,0.1), rgba(0,102,255,0.2));
-            border: 1px solid var(--c-cyan); color: var(--c-cyan);
-            padding: 14px 32px; font-size: 1.1rem; font-weight: 800; letter-spacing: 2px;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            cursor: pointer; transition: 0.2s; text-transform: uppercase;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
-            font-family: var(--font-eng);
-        }
-        .btn-primary:active { transform: scale(0.95); }
-        .btn-primary:hover { background: var(--c-cyan); color: #000; box-shadow: 0 0 30px var(--c-cyan); }
-
-        /* --- Components: Cards (Real TCG Style) --- */
-        .card-wrapper {
-            width: 140px; height: 200px; perspective: 1000px;
-            position: relative; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            cursor: pointer; margin: 0 -30px; /* Overlap cards */
-            will-change: transform;
-        }
-        /* Hover effect: Zoom & rise */
-        .card-wrapper:hover {
-            transform: translateY(-80px) scale(1.3) rotate(0deg) !important;
-            z-index: 1000; margin: 0 40px;
-        }
-
-        .card-body {
-            width: 100%; height: 100%; position: relative;
-            background: #0b111e;
-            border-radius: 10px; overflow: hidden;
-            border: 2px solid #444;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            transform-style: preserve-3d;
-            transition: border-color 0.2s;
-        }
-
-        /* Cost Badge */
-        .card-cost {
-            position: absolute; top: 0; left: 0; width: 34px; height: 34px;
-            background: var(--c-blue); border-bottom-right-radius: 10px;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; font-weight: 900; z-index: 10;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-        }
-
-        /* Image Area */
-        .card-img-frame {
-            position: absolute; top: 0; left: 0; width: 100%; height: 55%;
-            background: #000;
-        }
-        .card-img-frame img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
-
-        /* Text Area (Readable) */
-        .card-text-area {
-            position: absolute; bottom: 0; width: 100%; height: 45%;
-            background: linear-gradient(180deg, #151a25 0%, #080a0f 100%);
-            border-top: 2px solid rgba(255,255,255,0.1);
-            padding: 6px 8px; display: flex; flex-direction: column;
-        }
-        .card-name {
-            font-family: var(--font-jp); font-weight: 700; font-size: 0.85rem;
-            color: #fff; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .card-type { font-size: 0.65rem; color: var(--c-cyan); text-transform: uppercase; font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; }
-        .card-desc {
-            font-family: var(--font-jp); font-size: 0.65rem; color: #aaa; line-height: 1.3;
-            flex: 1; overflow: hidden;
-        }
-        
-        /* Power Badge */
-        .card-pow {
-            position: absolute; bottom: 5px; right: 5px;
-            font-size: 1.4rem; font-weight: 900; color: #fff;
-            text-shadow: 0 0 10px var(--c-pink);
-            display: flex; align-items: center; gap: 2px;
-        }
-        .card-pow span { font-size: 0.6rem; color: var(--c-pink); }
-
-        /* Holo Effect */
-        .card-holo {
-            position: absolute; inset: 0; pointer-events: none; z-index: 5;
-            background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.3) 30%, transparent 40%);
-            background-size: 200% 200%; mix-blend-mode: overlay; opacity: 0; transition: opacity 0.2s;
-        }
-        .card-wrapper:hover .card-holo { opacity: 1; }
-
-        /* Rarity Styles */
-        .r-1 .card-body { border-color: #555; }
-        .r-2 .card-body { border-color: var(--c-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
-        .r-3 .card-body { border-color: var(--c-gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
-        .r-3 .card-holo { background: linear-gradient(115deg, transparent 20%, rgba(255,0,0,0.4) 40%, rgba(0,255,0,0.4) 50%, rgba(0,0,255,0.4) 60%, transparent 80%); mix-blend-mode: color-dodge; }
-
-        /* --- Screens --- */
-        .screen {
-            position: absolute; inset: 0; display: none; z-index: 10;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            opacity: 0; transition: opacity 0.4s ease;
-        }
-        .screen.active { display: flex; opacity: 1; }
-
-        /* Login */
-        .login-box {
-            background: var(--c-glass); border: 1px solid var(--c-glass-border);
-            padding: 50px; border-radius: 20px; text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .title-logo { font-size: 4rem; line-height: 0.9; margin-bottom: 10px; text-shadow: 0 0 30px var(--c-cyan); }
-        .input-cyber {
-            background: rgba(0,0,0,0.3); border: none; border-bottom: 2px solid var(--c-cyan);
-            color: #fff; font-size: 1.5rem; text-align: center; width: 100%; padding: 10px;
-            font-family: var(--font-eng); margin: 30px 0;
-        }
-
-        /* Home */
-        .home-container {
-            width: 100%; max-width: 1000px; margin: auto;
-            display: grid; grid-template-columns: 250px 1fr; gap: 30px; height: 80%;
-        }
-        .profile-card {
-            background: var(--c-glass); border-radius: 15px; padding: 30px;
-            border: 1px solid var(--c-glass-border); display: flex; flex-direction: column; align-items: center;
-        }
-        .mode-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
-            align-content: center;
-        }
-        .mode-btn {
-            background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
-            border: 1px solid var(--c-glass-border); border-radius: 15px;
-            height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.3s; position: relative; overflow: hidden;
-        }
-        .mode-btn:hover { background: rgba(0, 243, 255, 0.1); border-color: var(--c-cyan); transform: translateY(-5px); }
-        .mode-icon { font-size: 3.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 10px currentColor); }
-
-        /* Battle */
-        .battle-hud-top {
-            position: absolute; top: 0; left: 0; width: 100%; height: 80px;
-            display: flex; justify-content: space-between; align-items: flex-start; padding: 20px;
-            z-index: 50; pointer-events: none;
-        }
-        .player-info { display: flex; gap: 15px; align-items: center; }
-        .avatar {
-            width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--c-cyan);
-            background: #000; overflow: hidden; box-shadow: 0 0 15px var(--c-cyan);
-        }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .bars { display: flex; flex-direction: column; gap: 5px; min-width: 200px; }
-        .hp-bar-track { width: 100%; height: 8px; background: #222; border-radius: 4px; overflow: hidden; }
-        .hp-bar-fill { height: 100%; width: 100%; transition: width 0.5s cubic-bezier(0.2, 1, 0.2, 1); }
-        .hp-p { background: var(--c-cyan); box-shadow: 0 0 10px var(--c-cyan); }
-        .hp-e { background: var(--c-pink); box-shadow: 0 0 10px var(--c-pink); }
-        
-        .field-area {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%);
-            width: 100%; height: 200px; display: flex; justify-content: center; align-items: center;
-            perspective: 1000px; pointer-events: none;
-        }
-        .enemy-sprite {
-            width: 180px; height: 180px; position: absolute; top: -120px;
-            animation: float 4s infinite ease-in-out; filter: drop-shadow(0 0 30px var(--c-pink));
-        }
-
-        .hand-area {
-            position: absolute; bottom: 20px; width: 100%; height: 180px;
-            display: flex; justify-content: center; align-items: flex-end;
-            padding-bottom: 10px; z-index: 100;
-        }
-        
-        /* Mana Crystal */
-        .mana-crystal {
-            width: 20px; height: 20px; background: #333; transform: rotate(45deg);
-            border: 1px solid #555; transition: 0.3s;
-            box-shadow: inset 0 0 5px #000;
-        }
-        .mana-crystal.active { background: var(--c-cyan); border-color: #fff; box-shadow: 0 0 10px var(--c-cyan); }
-
-        /* FX */
-        .damage-number {
-            position: absolute; font-size: 4rem; font-weight: 900; color: #fff;
-            text-shadow: 2px 2px 0 #000, 0 0 20px var(--c-pink);
-            pointer-events: none; z-index: 2000;
-            animation: popUp 0.8s forwards; font-family: var(--font-eng);
-        }
-        @keyframes popUp { 0%{transform:translate(-50%,0) scale(0.5); opacity:0;} 30%{transform:translate(-50%,-50px) scale(1.5); opacity:1;} 100%{transform:translate(-50%,-100px) scale(1); opacity:0;} }
-        @keyframes shake { 0%{transform:translate(0,0);} 20%{transform:translate(-10px,10px);} 40%{transform:translate(10px,-10px);} 60%{transform:translate(-10px,-10px);} 80%{transform:translate(10px,10px);} 100%{transform:translate(0,0);} }
-        @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-15px);} }
-
-        .flash-screen {
-            position: fixed; inset: 0; background: #fff; z-index: 3000;
-            opacity: 0; pointer-events: none; transition: opacity 0.1s;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000;
-            display: none; justify-content: center; align-items: center;
-        }
-        .modal-box {
-            background: #111; border: 1px solid var(--c-cyan); padding: 40px;
-            max-width: 500px; width: 90%; position: relative;
-            box-shadow: 0 0 50px rgba(0,243,255,0.2);
-            text-align: center;
-        }
-        .modal-box::before {
-            content:""; position:absolute; top:-5px; left:-5px; right:-5px; bottom:-5px;
-            border: 1px solid rgba(0,243,255,0.3); pointer-events: none;
-        }
-
-    </style>
+    <title>COSMIC CHEMISTRY: DECK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;900&family=Zen+Dots&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
     <canvas id="bg-canvas"></canvas>
+    <div class="scanline"></div>
+    <div id="loading">SYSTEM BOOT...</div>
+    <div id="red-flash" class="red-flash"></div>
 
-    <div id="flash-fx" class="flash-screen"></div>
-
-    <div id="screen-login" class="screen active" style="justify-content:center; align-items:center;">
+    <!-- Login Screen -->
+    <div id="screen-login" class="screen active" style="justify-content:center;">
         <div class="login-box">
-            <div class="title-logo">COSMIC<br><span style="color:var(--c-cyan)">CHEMISTRY</span></div>
-            <div style="letter-spacing:5px; color:#888; margin-bottom:20px; font-weight:bold;">OVERDRIVE V4.0</div>
-            <input type="text" id="input-name" class="input-cyber" placeholder="ENTER PILOT NAME" maxlength="12">
-            <button class="btn-primary" onclick="app.login()">SYSTEM BOOT</button>
+            <h1 style="font-size:3rem; margin:0; line-height:1; color:#fff; text-shadow:0 0 20px var(--c-cyan);">
+                COSMIC<br><span style="color:var(--c-cyan)">CHEMISTRY</span>
+            </h1>
+            <p style="color:#888; letter-spacing:3px;">CLOUD SYNC</p>
+            <button class="google-btn" onclick="app.loginGoogle()">Sign in with Google</button>
         </div>
     </div>
 
+    <!-- Home Screen -->
     <div id="screen-home" class="screen" style="padding-top:80px;">
         <div class="home-container">
-            <div class="profile-card">
-                <div class="avatar" style="width:100px; height:100px; margin-bottom:20px;">
-                    <img src="https://placehold.co/200x200/001/0ff?text=PILOT" alt="User">
+            <div class="profile-panel">
+                <div><small style="color:#aaa;">PILOT</small><div style="font-size:2rem; font-weight:bold;" id="home-name">...</div></div>
+                <div style="font-size:2rem; color:var(--c-gold);">RANK F</div>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-card"><small>ENERGY</small><div style="font-size:1.5rem; color:var(--c-cyan);" id="home-energy">0</div></div>
+                <div class="stat-card"><small>CARDS</small><div style="font-size:1.5rem;" id="home-cards">0</div></div>
+            </div>
+            <button class="btn-primary" style="width:100%; margin-bottom:15px;" onclick="app.nav('area')">START MISSION</button>
+            <button class="btn-primary" style="width:100%; margin-bottom:15px;" onclick="app.nav('deck')">DECK EDIT</button>
+            <button class="btn-primary" style="width:100%; margin-bottom:15px;" onclick="app.nav('upgrade')">UPGRADE</button>
+            <button class="btn-primary" style="width:100%; margin-bottom:15px;" onclick="app.nav('achievements')">ACHIEVEMENTS</button>
+            <button class="btn-primary btn-gold" style="width:100%;" onclick="app.nav('gacha')">MATERIALIZE</button>
+            <button class="btn-primary btn-red" style="width:100%; margin-top:30px;" onclick="app.logout()">LOGOUT</button>
+        </div>
+    </div>
+
+    <!-- Battle Screen -->
+    <div id="screen-battle" class="screen" style="padding:0;">
+        <div class="hud-top">
+            <div class="energy-display"><span id="battle-energy">0</span></div>
+            <button class="btn-primary btn-red" style="padding:5px 15px; font-size:0.8rem;" onclick="app.nav('home')">ABORT</button>
+        </div>
+
+        <div class="battle-stage" id="battle-stage-div">
+            <div class="zone-enemy">
+                <div class="enemy-hand" id="e-hand"></div>
+                <div class="boss-frame" id="enemy-visual">
+                    <img src="https://placehold.co/100x150/300/f05?text=BOSS" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
                 </div>
-                <h2 id="home-name" style="margin:0; font-size:1.8rem;">GUEST</h2>
-                <div style="color:var(--c-gold); margin-bottom:20px;">RANK <span id="home-rank" style="font-size:1.5rem; font-weight:bold;">F</span></div>
-                
-                <div style="width:100%; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; margin-top:auto;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="color:#aaa;">ENERGY</span>
-                        <span style="color:var(--c-cyan); font-weight:bold;" id="home-energy">100</span>
+                <div class="hp-bar-track"><div id="hp-e" class="hp-fill hp-e" style="width:100%;"></div></div>
+            </div>
+
+            <div class="zone-field">
+                <div class="field-slot" id="field-card"><div>ZONE</div></div>
+                <div id="cut-in" class="cut-in">ENEMY ATTACK!</div>
+            </div>
+
+            <div class="zone-player">
+                <div class="player-stats">
+                    <div>
+                        <small style="color:#aaa;">HP</small>
+                        <div class="hp-bar-track"><div id="hp-p" class="hp-fill hp-p" style="width:100%;"></div></div>
+                        <span id="hp-val-p">200</span>
                     </div>
-                    <button class="btn-primary" style="width:100%; font-size:0.9rem; padding:10px;" onclick="app.addEnergy()">RECHARGE</button>
+                    <div style="text-align:right;">
+                        <small style="color:#aaa;">MANA</small>
+                        <div style="font-size:1.5rem; font-weight:bold; color:var(--c-cyan);" id="mana-val">0</div>
+                    </div>
                 </div>
-            </div>
+                <div class="hand-container" id="p-hand"></div>
 
-            <div class="mode-grid">
-                <div class="mode-btn" onclick="app.startBattle('pve')" style="border-color:var(--c-blue)">
-                    <div class="mode-icon" style="color:var(--c-blue)">⚔️</div>
-                    <div style="font-size:1.5rem; font-weight:bold;">MISSION</div>
-                    <div style="color:#888; font-size:0.8rem;">CPU BATTLE</div>
+                <div class="deck-zone">
+                    <div class="deck-count" id="deck-count">20</div>
                 </div>
-                <div class="mode-btn" onclick="app.startBattle('pvp')" style="border-color:var(--c-pink)">
-                    <div class="mode-icon" style="color:var(--c-pink)">📡</div>
-                    <div style="font-size:1.5rem; font-weight:bold;">PVP RANK</div>
-                    <div style="color:#888; font-size:0.8rem;">ONLINE MATCH</div>
+                <div class="grave-zone"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Area Select Screen -->
+    <div id="screen-area" class="screen">
+        <div class="area-select-container">
+            <h2 style="color:var(--c-cyan); margin-bottom:10px;">SELECT AREA</h2>
+            <p style="color:#888; font-size:0.9rem;">Choose your battlefield</p>
+            <div class="area-grid" id="area-grid"></div>
+            <button class="btn-primary" style="margin-top:30px;" onclick="app.nav('home')">BACK</button>
+        </div>
+    </div>
+
+    <!-- Upgrade Screen -->
+    <div id="screen-upgrade" class="screen">
+        <div class="upgrade-container">
+            <h2 style="color:var(--c-gold); margin-bottom:10px;">CARD UPGRADE</h2>
+            <p style="color:#888; font-size:0.9rem;">Consume 2 copies to level up (+5 ATK)</p>
+            <div class="upgrade-cards" id="upgrade-cards"></div>
+            <button class="btn-primary" style="margin-top:30px;" onclick="app.nav('home')">BACK</button>
+        </div>
+    </div>
+
+    <!-- Achievements Screen -->
+    <div id="screen-achievements" class="screen">
+        <div class="achievement-container">
+            <h2 style="color:var(--c-gold); margin-bottom:10px;">ACHIEVEMENTS</h2>
+            <p style="color:#888; font-size:0.9rem;">Complete challenges to earn rewards</p>
+            <div class="achievement-list" id="achievement-list"></div>
+            <button class="btn-primary" style="margin-top:30px;" onclick="app.nav('home')">BACK</button>
+        </div>
+    </div>
+
+    <!-- Deck Edit Screen -->
+    <div id="screen-deck" class="screen">
+        <div class="deck-edit-container">
+            <div class="deck-header">
+                <div class="deck-slot-selector" id="deck-slots"></div>
+                <button class="btn-primary" style="padding:8px 20px;" onclick="app.nav('home')">BACK</button>
+            </div>
+            <div class="deck-area">
+                <div class="deck-panel">
+                    <div class="panel-title">DECK <span id="deck-count-display" class="deck-count">0/20</span></div>
+                    <div class="deck-cards" id="deck-cards"></div>
                 </div>
-                <div class="mode-btn" onclick="app.openGacha()" style="border-color:var(--c-gold)">
-                    <div class="mode-icon" style="color:var(--c-gold)">⚛️</div>
-                    <div style="font-size:1.5rem; font-weight:bold;">SYNTHESIS</div>
-                    <div style="color:#888; font-size:0.8rem;">GET CARDS</div>
-                </div>
-                <div class="mode-btn" onclick="alert('Coming in V4.1')" style="border-color:var(--c-purple)">
-                    <div class="mode-icon" style="color:var(--c-purple)">📂</div>
-                    <div style="font-size:1.5rem; font-weight:bold;">DATABASE</div>
-                    <div style="color:#888; font-size:0.8rem;">DECK EDIT</div>
+                <div class="collection-panel">
+                    <div class="panel-title">COLLECTION</div>
+                    <div class="filter-bar" id="filter-bar"></div>
+                    <div class="collection-cards" id="collection-cards"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="screen-battle" class="screen">
-        <div class="battle-hud-top">
-            <div class="player-info">
-                <div class="avatar" style="border-color:var(--c-pink); box-shadow:0 0 15px var(--c-pink);">
-                    <img src="https://placehold.co/100x100/300/f05?text=BOSS" alt="Enemy">
-                </div>
-                <div class="bars">
-                    <div style="font-weight:bold; color:var(--c-pink);">ANOMALY: DARK MATTER</div>
-                    <div class="hp-bar-track"><div id="hp-bar-e" class="hp-bar-fill hp-e" style="width:100%;"></div></div>
-                    <div style="font-size:0.8rem; text-align:right;">HP: <span id="hp-val-e">500</span></div>
-                </div>
-            </div>
-            <div style="text-align:right;">
-                <button class="btn-primary" style="padding:5px 15px; font-size:0.8rem;" onclick="app.surrender()">RETREAT</button>
-            </div>
-        </div>
-
-        <div class="field-area" id="field-area">
-            <img src="https://placehold.co/200x200/000/f05?text=Target" class="enemy-sprite" id="enemy-sprite">
-            <div id="combo-text" style="position:absolute; top:80%; font-size:3rem; font-weight:900; color:var(--c-gold); text-shadow:0 0 20px var(--c-gold); opacity:0; white-space:nowrap;">
-                REACTION!
-            </div>
-        </div>
-
-        <div style="position:absolute; bottom:0; width:100%; height:280px; background:linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%); pointer-events:none;"></div>
-        
-        <div style="position:absolute; bottom:220px; left:20px; z-index:50;" class="interactive">
-            <div class="player-info">
-                <div class="bars">
-                    <div style="font-weight:bold; color:var(--c-cyan);">SHIELD STATUS</div>
-                    <div class="hp-bar-track"><div id="hp-bar-p" class="hp-bar-fill hp-p" style="width:100%;"></div></div>
-                    <div style="font-size:0.8rem;">HP: <span id="hp-val-p">200</span></div>
-                </div>
-            </div>
-        </div>
-
-        <div style="position:absolute; bottom:220px; right:20px; z-index:50; text-align:right;">
-            <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">MANA</div>
-            <div style="display:flex; gap:5px;" id="mana-container"></div>
-        </div>
-
-        <div class="hand-area interactive" id="hand-area"></div>
+    <!-- Gacha Screen -->
+    <div id="screen-gacha" class="screen" style="justify-content:center; align-items:center;">
+        <h2 style="color:var(--c-gold);">MATTER SYNTHESIS</h2>
+        <div style="font-size:5rem; color:var(--c-gold); cursor:pointer; text-shadow:0 0 20px var(--c-gold);" onclick="app.gacha()">&#10022;</div>
+        <div style="margin-top:20px; font-weight:bold; color:#aaa;">COST: 100 ENERGY</div>
+        <button class="btn-primary" style="margin-top:30px;" onclick="app.nav('home')">BACK</button>
     </div>
 
-    <div id="modal-quiz" class="modal-overlay">
-        <div class="modal-box">
-            <h2 style="color:var(--c-cyan);">SYSTEM LOCK</h2>
-            <p id="quiz-q" style="font-size:1.2rem; margin:20px 0; font-weight:bold;">Question?</p>
-            <div id="quiz-opts" style="display:flex; flex-direction:column; gap:10px;"></div>
+    <!-- Quiz Modal -->
+    <div id="modal-quiz" class="overlay">
+        <div class="msg-box">
+            <h2 style="color:var(--c-cyan);">ENERGY CHARGE</h2>
+            <p id="q-text" style="font-weight:bold; margin:20px 0;">...</p>
+            <div id="q-opts" style="display:flex; flex-direction:column; gap:10px;"></div>
         </div>
     </div>
 
-    <div id="modal-reward" class="modal-overlay">
-        <div class="modal-box" style="width:400px;">
-            <h2 style="color:var(--c-gold);">SYNTHESIS COMPLETE</h2>
-            <div id="reward-view" style="height:250px; display:flex; justify-content:center; align-items:center;"></div>
-            <button class="btn-primary" onclick="document.getElementById('modal-reward').style.display='none'">ACCEPT</button>
+    <!-- Message Modal -->
+    <div id="modal-msg" class="overlay">
+        <div class="msg-box">
+            <h2 id="msg-title" style="color:var(--c-cyan);">MESSAGE</h2>
+            <p id="msg-text" style="margin:20px 0;">...</p>
+            <button class="btn-primary" onclick="document.getElementById('modal-msg').classList.remove('active')">OK</button>
         </div>
     </div>
 
-    <script>
-        // --- 1. Data & Config ---
-        const CARDS_DB = [
-            { id:1, name:"水素 (Hydrogen)", type:"ATK", val:20, cost:1, rarity:1, elm:"H", desc:"最も軽い元素。酸素と反応して爆発的なエネルギーを生む。", img:"H" },
-            { id:2, name:"酸素 (Oxygen)", type:"SUP", val:0, cost:1, rarity:1, elm:"O", desc:"燃焼を助ける気体。呼吸に必須であり、水素と反応する。", img:"O" },
-            { id:3, name:"ナトリウム (Sodium)", type:"ATK", val:30, cost:2, rarity:2, elm:"Na", desc:"水と激しく反応する軟らかい金属。塩素と結合しやすい。", img:"Na" },
-            { id:4, name:"塩素 (Chlorine)", type:"ATK", val:35, cost:2, rarity:2, elm:"Cl", desc:"刺激臭のある有毒な気体。強力な酸化作用を持つ。", img:"Cl" },
-            { id:5, name:"水 (Water)", type:"HEAL", val:40, cost:2, rarity:1, elm:"H2O", desc:"生命の源。中性の液体で、多くの物質を溶かす溶媒。", img:"H2O" },
-            { id:6, name:"塩酸 (HCl)", type:"ATK", val:50, cost:3, rarity:3, elm:"Acid", desc:"塩化水素の水溶液。強酸性で多くの金属を溶かす。", img:"HCl" },
-            { id:7, name:"水酸化Na (NaOH)", type:"DEF", val:30, cost:3, rarity:2, elm:"Base", desc:"苛性ソーダ。強塩基性で、酸を中和する能力を持つ。", img:"NaOH" },
-            { id:8, name:"王水 (Aqua Regia)", type:"ATK", val:80, cost:4, rarity:3, elm:"Acid", desc:"濃塩酸と濃硝酸の混合液。金すらも溶かす最強の酸。", img:"Au" }
-        ];
+    <!-- Upgrade Confirmation Modal -->
+    <div id="modal-upgrade" class="overlay">
+        <div class="upgrade-modal-content">
+            <h2 style="color:var(--c-gold);">UPGRADE CARD</h2>
+            <div id="upgrade-card-img" style="font-size:3rem; margin:15px 0;">HCl</div>
+            <div id="upgrade-card-name" style="font-size:1.2rem; font-weight:bold;">Card Name</div>
+            <div class="upgrade-comparison">
+                <div class="upgrade-stat">
+                    <div class="upgrade-stat-label">LEVEL</div>
+                    <div id="upgrade-current-level" class="upgrade-stat-value old">Lv.1</div>
+                </div>
+                <div class="upgrade-arrow">-></div>
+                <div class="upgrade-stat">
+                    <div class="upgrade-stat-label">LEVEL</div>
+                    <div id="upgrade-new-level" class="upgrade-stat-value new">Lv.2</div>
+                </div>
+            </div>
+            <div class="upgrade-comparison">
+                <div class="upgrade-stat">
+                    <div class="upgrade-stat-label">ATK</div>
+                    <div id="upgrade-current-val" class="upgrade-stat-value old">30</div>
+                </div>
+                <div class="upgrade-arrow">-></div>
+                <div class="upgrade-stat">
+                    <div class="upgrade-stat-label">ATK</div>
+                    <div id="upgrade-new-val" class="upgrade-stat-value new">35</div>
+                </div>
+            </div>
+            <div class="upgrade-cost-info">Cost: <span id="upgrade-cost">2 copies</span></div>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                <button class="btn-primary btn-gold" onclick="cardUpgrade.confirmUpgrade()">UPGRADE</button>
+                <button class="btn-primary" onclick="cardUpgrade.closeUpgradeModal()">CANCEL</button>
+            </div>
+        </div>
+    </div>
 
-        const QUIZZES = [
-            { q:"原子番号1番の元素は？", a:0, o:["水素(H)","ヘリウム(He)","炭素(C)"] },
-            { q:"炎色反応で「赤色」を示す金属は？", a:2, o:["銅(Cu)","ナトリウム(Na)","リチウム(Li)"] },
-            { q:"pHが7より小さい液性は？", a:1, o:["アルカリ性","酸性","中性"] },
-            { q:"電子殻の最も外側にある電子を何と呼ぶ？", a:0, o:["最外殻電子","陽子","中性子"] }
-        ];
+    <!-- Card Detail Modal -->
+    <div id="modal-card-detail" class="card-detail-modal">
+        <div class="card-detail-content">
+            <div id="card-detail-rarity" style="color:var(--c-gold); font-size:0.8rem;">COMMON</div>
+            <div id="card-detail-img" class="card-detail-img">HCl</div>
+            <div id="card-detail-name" class="card-detail-name">Card Name</div>
+            <div id="card-detail-type" class="card-detail-type">ACID</div>
+            <div class="card-detail-stats">
+                <div class="card-detail-stat">
+                    <div class="card-detail-stat-label">COST</div>
+                    <div id="card-detail-cost" class="card-detail-stat-value">2</div>
+                </div>
+                <div class="card-detail-stat">
+                    <div class="card-detail-stat-label">VALUE</div>
+                    <div id="card-detail-val" class="card-detail-stat-value">30</div>
+                </div>
+            </div>
+            <div id="card-detail-desc" class="card-detail-desc">Description</div>
+            <div id="card-detail-chem" class="card-detail-chem">Chemical info</div>
+            <div class="card-detail-actions">
+                <button class="btn-primary" onclick="deckEditor.closeCardDetail()">CLOSE</button>
+            </div>
+        </div>
+    </div>
 
-        // --- 2. State Management ---
-        const state = {
-            user: { name:"GUEST", rank:"F", energy:100, collection:[1,1,2,2,3,5] },
-            battle: { 
-                hp:200, maxHp:200, eHp:500, eMaxHp:500, 
-                mana:1, maxMana:5, hand:[], field:null, isPvP:false 
-            }
-        };
-
-        // --- 3. App Logic ---
-        const app = {
-            init: () => {
-                particles.init();
-                const saved = localStorage.getItem('cosmic_v4_user');
-                if(saved) state.user = JSON.parse(saved);
-                if(state.user.name !== "GUEST") {
-                    document.getElementById('input-name').value = state.user.name;
-                }
-            },
-
-            login: () => {
-                const name = document.getElementById('input-name').value || "PILOT";
-                state.user.name = name;
-                app.save();
-                app.updateHomeUI();
-                app.nav('home');
-            },
-
-            save: () => {
-                localStorage.setItem('cosmic_v4_user', JSON.stringify(state.user));
-            },
-
-            nav: (screenId) => {
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                document.getElementById('screen-'+screenId).classList.add('active');
-            },
-
-            updateHomeUI: () => {
-                document.getElementById('home-name').innerText = state.user.name;
-                document.getElementById('home-rank').innerText = state.user.rank;
-                document.getElementById('home-energy').innerText = state.user.energy;
-            },
-
-            addEnergy: () => {
-                state.user.energy += 50; app.save(); app.updateHomeUI();
-                fx.flash();
-            },
-
-            // --- Battle System ---
-            startBattle: (mode) => {
-                if(state.user.energy < 10) return alert("INSUFFICIENT ENERGY");
-                state.user.energy -= 10; app.save(); app.updateHomeUI();
-
-                state.battle.isPvP = (mode === 'pvp');
-                state.battle.hp = 200; state.battle.eHp = mode==='pvp'?300:500;
-                state.battle.mana = 1; state.battle.hand = []; state.battle.field = null;
-
-                app.nav('battle');
-                app.updateBattleUI();
-                
-                // Initial Draw
-                for(let i=0; i<4; i++) app.drawCard();
-                app.startTurn();
-            },
-
-            drawCard: () => {
-                const id = state.user.collection[Math.floor(Math.random()*state.user.collection.length)];
-                const card = {...CARDS_DB.find(c=>c.id===id), uid:Math.random()};
-                state.battle.hand.push(card);
-                app.renderHand();
-            },
-
-            startTurn: () => {
-                // Quiz for Mana
-                app.showQuiz((success) => {
-                    const gain = success ? 3 : 1;
-                    state.battle.mana = Math.min(state.battle.maxMana, state.battle.mana + gain);
-                    app.drawCard();
-                    app.updateBattleUI();
-                });
-            },
-
-            playCard: (index) => {
-                const card = state.battle.hand[index];
-                if(card.cost > state.battle.mana) {
-                    fx.shakeElem(document.getElementById('hand-area'));
-                    return;
-                }
-
-                // Cost
-                state.battle.mana -= card.cost;
-                state.battle.hand.splice(index, 1);
-
-                // Logic & Combo
-                let val = card.val;
-                let msg = "";
-                
-                // Combo Check
-                const f = state.battle.field;
-                if(f) {
-                    if((card.elm=="H" && f.elm=="O") || (card.elm=="O" && f.elm=="H")) {
-                        val *= 2.5; msg = "EXPLOSION!!"; fx.flash();
-                    } else if((card.elm=="Na" && f.elm=="Cl") || (card.elm=="Cl" && f.elm=="Na")) {
-                        val *= 2; msg = "IONIC BOND!";
-                    } else if((card.elm=="Acid" && f.elm=="Base") || (card.elm=="Base" && f.elm=="Acid")) {
-                        msg = "NEUTRALIZATION"; state.battle.hp += 50; val=0;
-                    }
-                }
-
-                // Effect
-                if(card.type === "ATK" && val > 0) {
-                    state.battle.eHp = Math.max(0, state.battle.eHp - Math.floor(val));
-                    fx.damage(Math.floor(val), 'enemy-sprite');
-                    fx.shakeScreen();
-                } else if(card.type === "HEAL") {
-                    state.battle.hp = Math.min(state.battle.maxHp, state.battle.hp + val);
-                } else if(card.type === "DEF") {
-                    state.battle.hp += Math.floor(val/2); // Shield
-                }
-
-                if(msg) fx.showCombo(msg);
-
-                // Update State
-                state.battle.field = card;
-                app.renderHand();
-                app.updateBattleUI();
-
-                // Win Check
-                if(state.battle.eHp <= 0) {
-                    setTimeout(() => { alert("VICTORY!!"); app.nav('home'); }, 1000);
-                } else {
-                    setTimeout(app.enemyTurn, 1500);
-                }
-            },
-
-            enemyTurn: () => {
-                const dmg = 20 + Math.floor(Math.random()*20);
-                state.battle.hp = Math.max(0, state.battle.hp - dmg);
-                fx.damage(dmg, 'screen-battle'); // Player gets hit
-                fx.shakeScreen();
-                app.updateBattleUI();
-                state.battle.field = null; // Clear field combo
-
-                if(state.battle.hp <= 0) {
-                    setTimeout(() => { alert("DEFEAT..."); app.nav('home'); }, 500);
-                } else {
-                    app.startTurn();
-                }
-            },
-
-            updateBattleUI: () => {
-                // HP Bars
-                document.getElementById('hp-bar-p').style.width = (state.battle.hp/state.battle.maxHp)*100+"%";
-                document.getElementById('hp-val-p').innerText = state.battle.hp;
-                document.getElementById('hp-bar-e').style.width = (state.battle.eHp/state.battle.eMaxHp)*100+"%";
-                document.getElementById('hp-val-e').innerText = state.battle.eHp;
-
-                // Mana
-                const mc = document.getElementById('mana-container'); mc.innerHTML="";
-                for(let i=0; i<state.battle.maxMana; i++){
-                    const d = document.createElement('div');
-                    d.className = "mana-crystal " + (i < state.battle.mana ? "active" : "");
-                    mc.appendChild(d);
-                }
-            },
-
-            renderHand: () => {
-                const el = document.getElementById('hand-area'); el.innerHTML="";
-                state.battle.hand.forEach((c, i) => {
-                    const wrap = document.createElement('div');
-                    wrap.className = "card-wrapper";
-                    
-                    // Rotation
-                    const rot = (i - (state.battle.hand.length-1)/2) * 5;
-                    const ty = Math.abs(i - (state.battle.hand.length-1)/2) * 15;
-                    wrap.style.transform = `rotate(${rot}deg) translateY(${ty}px)`;
-                    
-                    if(c.cost > state.battle.mana) wrap.style.filter = "grayscale(1) brightness(0.5)";
-
-                    // Create Card HTML
-                    let typeIcon = "⚔️"; 
-                    if(c.type=="DEF") typeIcon="🛡"; if(c.type=="HEAL") typeIcon="💚"; if(c.type=="SUP") typeIcon="🧪";
-
-                    wrap.innerHTML = `
-                        <div class="card-body r-${c.rarity}">
-                            <div class="card-cost">${c.cost}</div>
-                            <div class="card-img-frame">
-                                <img src="https://placehold.co/150x150/111/fff?text=${c.img}&font=roboto">
-                            </div>
-                            <div class="card-text-area">
-                                <div class="card-name">${c.name}</div>
-                                <div class="card-type">${typeIcon} ${c.type}</div>
-                                <div class="card-desc">${c.desc}</div>
-                            </div>
-                            <div class="card-pow">${c.val}<span>POW</span></div>
-                            <div class="card-holo"></div>
-                        </div>
-                    `;
-                    
-                    // Tilt Event
-                    wrap.onmousemove = (e) => fx.tilt(e, wrap);
-                    wrap.onmouseleave = () => { wrap.firstElementChild.style.transform = `rotateY(0) rotateX(0)`; };
-                    wrap.onclick = () => app.playCard(i);
-
-                    el.appendChild(wrap);
-                });
-            },
-
-            surrender: () => { if(confirm("ABORT MISSION?")) app.nav('home'); },
-
-            // --- Gacha & Quiz ---
-            showQuiz: (cb) => {
-                const q = QUIZZES[Math.floor(Math.random()*QUIZZES.length)];
-                document.getElementById('quiz-q').innerText = q.q;
-                const area = document.getElementById('quiz-opts'); area.innerHTML="";
-                q.o.forEach((txt, idx)=>{
-                    const b = document.createElement('button');
-                    b.className="btn-primary"; b.innerText=txt; b.style.width="100%";
-                    b.onclick = () => {
-                        document.getElementById('modal-quiz').style.display='none';
-                        cb(idx===q.a);
-                    };
-                    area.appendChild(b);
-                });
-                document.getElementById('modal-quiz').style.display='flex';
-            },
-
-            openGacha: () => {
-                if(state.user.energy < 50) return alert("NEED 50 ENERGY");
-                app.showQuiz((success)=>{
-                    if(!success) return alert("SYNTHESIS FAILED (Wrong Answer)");
-                    state.user.energy -= 50; app.save(); app.updateHomeUI();
-                    
-                    // Draw
-                    const r = Math.random();
-                    let rarity = 1;
-                    if(r<0.1) rarity=3; else if(r<0.4) rarity=2;
-                    const pool = CARDS_DB.filter(c=>c.rarity===rarity);
-                    const hit = pool[Math.floor(Math.random()*pool.length)];
-                    state.user.collection.push(hit.id); app.save();
-
-                    // Show
-                    const v = document.getElementById('reward-view');
-                    v.innerHTML = `
-                        <div class="card-wrapper" style="transform:scale(1.5); margin:0;">
-                            <div class="card-body r-${hit.rarity}" style="border-color:${rarity==3?'var(--c-gold)':'var(--c-cyan)'}">
-                                <div class="card-img-frame"><img src="https://placehold.co/150x150/000/fff?text=${hit.img}"></div>
-                                <div class="card-text-area"><div class="card-name">${hit.name}</div></div>
-                                <div class="card-holo" style="opacity:1"></div>
-                            </div>
-                        </div>
-                    `;
-                    document.getElementById('modal-reward').style.display='flex';
-                });
-            }
-        };
-
-        // --- 4. FX Library ---
-        const fx = {
-            tilt: (e, el) => {
-                const rect = el.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width/2;
-                const y = e.clientY - rect.top - rect.height/2;
-                el.firstElementChild.style.transform = `rotateY(${x/5}deg) rotateX(${-y/5}deg)`;
-                el.querySelector('.card-holo').style.backgroundPosition = `${50+(x/2)}% ${50+(y/2)}%`;
-            },
-            shakeScreen: () => {
-                document.body.style.animation = "shake 0.3s";
-                setTimeout(()=>document.body.style.animation="", 300);
-            },
-            shakeElem: (el) => {
-                el.style.animation = "shake 0.3s";
-                setTimeout(()=>el.style.animation="", 300);
-            },
-            flash: () => {
-                const f = document.getElementById('flash-fx');
-                f.style.opacity=0.8; setTimeout(()=>f.style.opacity=0, 100);
-            },
-            damage: (val, targetId) => {
-                if(val <= 0) return;
-                const t = document.getElementById(targetId);
-                const rect = t ? t.getBoundingClientRect() : {left:window.innerWidth/2, top:window.innerHeight/2};
-                
-                const d = document.createElement('div');
-                d.className = 'damage-number';
-                d.innerText = val;
-                d.style.left = (rect.left + 50) + "px";
-                d.style.top = rect.top + "px";
-                document.body.appendChild(d);
-                setTimeout(()=>d.remove(), 1000);
-            },
-            showCombo: (txt) => {
-                const el = document.getElementById('combo-text');
-                el.innerText = txt;
-                el.style.opacity = 1; el.style.top = "40%";
-                setTimeout(()=>{ el.style.opacity=0; el.style.top="80%"; }, 1500);
-            }
-        };
-
-        // --- 5. Particles (Canvas) ---
-        const particles = {
-            init: () => {
-                const cvs = document.getElementById('bg-canvas');
-                const ctx = cvs.getContext('2d');
-                let w, h, parts = [];
-                
-                const resize = () => { w=cvs.width=window.innerWidth; h=cvs.height=window.innerHeight; };
-                window.addEventListener('resize', resize); resize();
-
-                for(let i=0; i<100; i++) parts.push({x:Math.random()*w, y:Math.random()*h, s:Math.random()*2, v:Math.random()*0.5});
-
-                const loop = () => {
-                    ctx.clearRect(0,0,w,h);
-                    ctx.fillStyle = "rgba(0, 243, 255, 0.3)";
-                    parts.forEach(p => {
-                        p.y -= p.v;
-                        if(p.y < 0) p.y = h;
-                        ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
-                    });
-                    requestAnimationFrame(loop);
-                };
-                loop();
-            }
-        };
-
-        // Boot
-        window.onload = app.init;
-
-    </script>
+    <!-- Main JavaScript Module -->
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>

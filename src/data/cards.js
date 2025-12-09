@@ -1,0 +1,436 @@
+// Card Database - COSMIC CHEMISTRY: DECK
+// Total: 30 cards across 4 types (ACID, BASE, METAL, NEUTRAL)
+// Rarities: COMMON (60%), RARE (25%), EPIC (12%), LEGENDARY (3%)
+
+export const CARDS = [
+    // === ACID CARDS (酸) === //
+    {
+        id: 1,
+        name: "塩酸",
+        type: "ACID",
+        val: 30,
+        cost: 2,
+        img: "HCl",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "標準的な酸攻撃",
+        chemInfo: "HClの水溶液。強酸性(pKa=-7)を示し、胃酸の主成分でもある。"
+    },
+    {
+        id: 2,
+        name: "硫酸",
+        type: "ACID",
+        val: 40,
+        cost: 3,
+        img: "H₂SO₄",
+        rarity: "RARE",
+        effectType: "damage",
+        target: "enemy",
+        combo: {type: "ACID", count: 1},
+        comboBonus: {val: 15},
+        description: "強力な酸。連続使用で威力増加",
+        chemInfo: "二価の強酸。濃硫酸は脱水作用を持ち、工業的に最も重要な化学物質の一つ。"
+    },
+    {
+        id: 11,
+        name: "硝酸",
+        type: "ACID",
+        val: 35,
+        cost: 2,
+        img: "HNO₃",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "強い酸化作用",
+        chemInfo: "強酸性と酸化力を併せ持つ。濃硝酸は金属を不動態化させる。"
+    },
+    {
+        id: 8,
+        name: "王水",
+        type: "ACID",
+        val: 80,
+        cost: 5,
+        img: "Au溶",
+        rarity: "LEGENDARY",
+        effectType: "damage",
+        target: "enemy",
+        combo: {type: "ACID", count: 2},
+        comboBonus: {val: 30, effect: "draw", value: 2},
+        description: "最強の酸。コンボで追加ドロー",
+        chemInfo: "濃塩酸と濃硝酸を3:1で混合した液体。金や白金すら溶かす最強の酸。"
+    },
+    {
+        id: 16,
+        name: "リン酸",
+        type: "ACID",
+        val: 25,
+        cost: 2,
+        img: "H₃PO₄",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "弱酸性の三価の酸",
+        chemInfo: "三価の弱酸。リン酸肥料の原料として重要。生体内ではATPとして存在。"
+    },
+    {
+        id: 17,
+        name: "酢酸",
+        type: "ACID",
+        val: 20,
+        cost: 1,
+        img: "CH₃COOH",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "身近な弱酸",
+        chemInfo: "カルボン酸の代表例。食酢の主成分で、pKa=4.76の弱酸。"
+    },
+
+    // === BASE CARDS (塩基) === //
+    {
+        id: 3,
+        name: "水酸化Na",
+        type: "BASE",
+        val: 30,
+        cost: 2,
+        img: "NaOH",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        combo: {type: "METAL", count: 1},
+        comboBonus: {effect: "draw", value: 1},
+        description: "強塩基性の攻撃。金属と反応してドロー",
+        chemInfo: "強塩基。苛性ソーダとも呼ばれ、石鹸製造などに使用される。"
+    },
+    {
+        id: 4,
+        name: "アンモニア",
+        type: "BASE",
+        val: 20,
+        cost: 1,
+        img: "NH₃",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "低コストの塩基攻撃",
+        chemInfo: "刺激臭を持つ気体。Haber-Bosch法で工業的に合成され、肥料の原料となる。"
+    },
+    {
+        id: 12,
+        name: "水酸化Ca",
+        type: "BASE",
+        val: 35,
+        cost: 3,
+        img: "Ca(OH)₂",
+        rarity: "RARE",
+        effectType: "damage",
+        target: "enemy",
+        combo: {type: "ACID", count: 1},
+        comboBonus: {effect: "heal", value: 20},
+        description: "中和反応で回復",
+        chemInfo: "消石灰。水に溶けにくい強塩基で、石灰水のCO₂検出に利用される。"
+    },
+    {
+        id: 18,
+        name: "水酸化K",
+        type: "BASE",
+        val: 32,
+        cost: 2,
+        img: "KOH",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "強力な強塩基",
+        chemInfo: "苛性カリ。水酸化ナトリウムより強い塩基性を示す。"
+    },
+    {
+        id: 19,
+        name: "炭酸水素Na",
+        type: "BASE",
+        val: 15,
+        cost: 1,
+        img: "NaHCO₃",
+        rarity: "COMMON",
+        effectType: "heal",
+        target: "self",
+        description: "弱塩基でHP回復",
+        chemInfo: "重曹。弱塩基性で、ベーキングパウダーや消火剤として使用される。"
+    },
+
+    // === METAL CARDS (金属) === //
+    {
+        id: 5,
+        name: "鉄",
+        type: "METAL",
+        val: 25,
+        cost: 2,
+        img: "Fe",
+        rarity: "COMMON",
+        effectType: "special",
+        effectValue: "shield",
+        target: "self",
+        description: "防御力を高める(次のダメージ-10)",
+        chemInfo: "最も重要な金属。製鉄では酸化鉄を一酸化炭素で還元する。"
+    },
+    {
+        id: 6,
+        name: "亜鉛",
+        type: "METAL",
+        val: 20,
+        cost: 1,
+        img: "Zn",
+        rarity: "COMMON",
+        effectType: "manaBoost",
+        effectValue: 1,
+        target: "self",
+        description: "マナを1増やす",
+        chemInfo: "イオン化傾向が大きく、ボルタ電池の負極として使用される。"
+    },
+    {
+        id: 13,
+        name: "銅",
+        type: "METAL",
+        val: 30,
+        cost: 2,
+        img: "Cu",
+        rarity: "RARE",
+        effectType: "special",
+        effectValue: "damageBoost",
+        target: "self",
+        description: "次の攻撃+15ダメージ",
+        chemInfo: "電気伝導性が高い赤褐色の金属。炎色反応は青緑色。"
+    },
+    {
+        id: 20,
+        name: "アルミニウム",
+        type: "METAL",
+        val: 28,
+        cost: 2,
+        img: "Al",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "軽くて強い金属攻撃",
+        chemInfo: "軽量で加工しやすい。両性金属で酸・塩基両方に溶ける。"
+    },
+    {
+        id: 21,
+        name: "銀",
+        type: "METAL",
+        val: 35,
+        cost: 3,
+        img: "Ag",
+        rarity: "RARE",
+        effectType: "damage",
+        target: "enemy",
+        combo: {type: "METAL", count: 1},
+        comboBonus: {val: 10},
+        description: "貴金属の攻撃。金属連鎖でブースト",
+        chemInfo: "最も電気伝導性が高い金属。硝酸には溶けるが王水には溶けにくい。"
+    },
+    {
+        id: 22,
+        name: "マグネシウム",
+        type: "METAL",
+        val: 20,
+        cost: 1,
+        img: "Mg",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "激しく燃える軽金属",
+        chemInfo: "イオン化傾向が非常に大きく、空気中で激しく燃焼する。"
+    },
+    {
+        id: 23,
+        name: "金",
+        type: "METAL",
+        val: 50,
+        cost: 4,
+        img: "Au",
+        rarity: "EPIC",
+        effectType: "damage",
+        target: "enemy",
+        description: "最も安定した貴金属",
+        chemInfo: "化学的に極めて安定。王水にのみ溶ける。"
+    },
+
+    // === NEUTRAL CARDS (中性) === //
+    {
+        id: 7,
+        name: "水",
+        type: "NEUTRAL",
+        val: 50,
+        cost: 3,
+        img: "H₂O",
+        rarity: "COMMON",
+        effectType: "heal",
+        target: "self",
+        description: "HPを回復する",
+        chemInfo: "生命に必須の物質。極性分子で優れた溶媒。沸点100℃、凝固点0℃。"
+    },
+    {
+        id: 9,
+        name: "過酸化水素",
+        type: "NEUTRAL",
+        val: 15,
+        cost: 2,
+        img: "H₂O₂",
+        rarity: "RARE",
+        effectType: "draw",
+        effectValue: 2,
+        target: "self",
+        description: "カードを2枚引く",
+        chemInfo: "強力な酸化剤。漂白剤や消毒剤として使用される。光で分解しやすい。"
+    },
+    {
+        id: 10,
+        name: "触媒",
+        type: "NEUTRAL",
+        val: 0,
+        cost: 1,
+        img: "Cat",
+        rarity: "EPIC",
+        effectType: "manaBoost",
+        effectValue: 2,
+        target: "self",
+        description: "マナを2増やす",
+        chemInfo: "反応速度を変化させるが自身は変化しない物質。酵素も触媒の一種。"
+    },
+    {
+        id: 14,
+        name: "塩化ナトリウム",
+        type: "NEUTRAL",
+        val: 10,
+        cost: 1,
+        img: "NaCl",
+        rarity: "COMMON",
+        effectType: "manaBoost",
+        effectValue: 1,
+        target: "self",
+        description: "マナを1増やす",
+        chemInfo: "食塩。イオン結晶で、水溶液は電気を通す。融解塩電解でNaとCl₂を得る。"
+    },
+    {
+        id: 15,
+        name: "オゾン",
+        type: "NEUTRAL",
+        val: 45,
+        cost: 4,
+        img: "O₃",
+        rarity: "EPIC",
+        effectType: "damage",
+        target: "enemy",
+        combo: {type: "NEUTRAL", count: 2},
+        comboBonus: {val: 25},
+        description: "強力な酸化剤。NEUTRAL連鎖でブースト",
+        chemInfo: "特有の臭いを持つ酸化力の強い気体。成層圏で紫外線を吸収する。"
+    },
+    {
+        id: 24,
+        name: "酸化バナジウム(V)",
+        type: "NEUTRAL",
+        val: 0,
+        cost: 2,
+        img: "V₂O₅",
+        rarity: "RARE",
+        effectType: "special",
+        effectValue: "damageBoost",
+        target: "self",
+        description: "接触法の触媒。次攻撃+15",
+        chemInfo: "硫酸製造の接触法における触媒。SO₂の酸化を促進する。"
+    },
+    {
+        id: 25,
+        name: "二酸化炭素",
+        type: "NEUTRAL",
+        val: 10,
+        cost: 1,
+        img: "CO₂",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "温室効果ガス",
+        chemInfo: "無色無臭の気体。水に溶けて弱酸性を示す。光合成の原料。"
+    },
+    {
+        id: 26,
+        name: "二酸化硫黄",
+        type: "NEUTRAL",
+        val: 25,
+        cost: 2,
+        img: "SO₂",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "刺激臭のある気体",
+        chemInfo: "刺激臭を持つ有毒な気体。還元性と漂白作用を持つ。"
+    },
+    {
+        id: 27,
+        name: "メタン",
+        type: "NEUTRAL",
+        val: 30,
+        cost: 2,
+        img: "CH₄",
+        rarity: "COMMON",
+        effectType: "damage",
+        target: "enemy",
+        description: "最も単純な炭化水素",
+        chemInfo: "無色無臭の可燃性気体。天然ガスの主成分で、化石燃料の一つ。"
+    },
+    {
+        id: 28,
+        name: "エタノール",
+        type: "NEUTRAL",
+        val: 35,
+        cost: 2,
+        img: "C₂H₅OH",
+        rarity: "RARE",
+        effectType: "heal",
+        target: "self",
+        description: "アルコールでHP回復",
+        chemInfo: "最も身近なアルコール。発酵により生成され、消毒や溶媒として使用。"
+    },
+    {
+        id: 29,
+        name: "グルコース",
+        type: "NEUTRAL",
+        val: 40,
+        cost: 3,
+        img: "C₆H₁₂O₆",
+        rarity: "RARE",
+        effectType: "heal",
+        target: "self",
+        description: "生命のエネルギー源",
+        chemInfo: "ブドウ糖。単糖類の代表で、生体のエネルギー源。光合成により生成。"
+    },
+    {
+        id: 30,
+        name: "ベンゼン",
+        type: "NEUTRAL",
+        val: 55,
+        cost: 4,
+        img: "C₆H₆",
+        rarity: "EPIC",
+        effectType: "damage",
+        target: "enemy",
+        combo: {type: "NEUTRAL", count: 1},
+        comboBonus: {val: 20, effect: "draw", value: 1},
+        description: "芳香族の基本構造",
+        chemInfo: "平面正六角形構造を持つ芳香族化合物の基本。共鳴構造により安定化。"
+    }
+];
+
+// Card statistics
+// ACID: 6 cards (20%)
+// BASE: 5 cards (17%)
+// METAL: 7 cards (23%)
+// NEUTRAL: 12 cards (40%)
+
+// Rarity distribution
+// COMMON: 18 cards (60%)
+// RARE: 8 cards (27%)
+// EPIC: 3 cards (10%)
+// LEGENDARY: 1 card (3%)
